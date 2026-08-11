@@ -92,6 +92,63 @@ def recordar_idioma(respuesta):
     return respuesta
 
 
+#: Color de la barra de título de la ventana instalada y del fondo de arranque.
+#: Salen del CSS existente para que la ventana no desentone (#2d2b2b / #facb8d).
+COLOR_TEMA = "#2d2b2b"
+COLOR_FONDO = "#2d2b2b"
+
+
+@app.get("/manifest.json")
+def manifest():
+    """Manifest de la PWA, servido por Flask y no como archivo estático.
+
+    Así el nombre y la descripción que se ven al instalar pasan por el mismo
+    sistema de traducción que el resto (i18n del punto 5.1) en vez de quedar
+    fijos en un idioma.
+    """
+    idioma = idioma_activo()
+    datos = {
+        "id": "/?fuente=pwa",
+        "name": traducir("app_nombre", idioma),
+        "short_name": traducir("app_nombre", idioma),
+        "description": traducir("app_descripcion", idioma),
+        "lang": idioma,
+        # `start_url` distinto de "/" para poder distinguir en el registro las
+        # aperturas desde la app instalada de las del navegador.
+        "start_url": "/?fuente=pwa",
+        "scope": "/",
+        "display": "standalone",
+        "background_color": COLOR_FONDO,
+        "theme_color": COLOR_TEMA,
+        "icons": [
+            {
+                "src": url_for("static", filename="iconos/icono-192.png"),
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any",
+            },
+            {
+                "src": url_for("static", filename="iconos/icono-512.png"),
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any",
+            },
+            {
+                # `maskable` deja que Android recorte el icono a su forma sin
+                # comerse el dibujo: por eso este lleva más margen.
+                "src": url_for("static", filename="iconos/icono-maskable-512.png"),
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "maskable",
+            },
+        ],
+    }
+    respuesta = jsonify(datos)
+    # El tipo que pide la especificación de Web App Manifest.
+    respuesta.headers["Content-Type"] = "application/manifest+json"
+    return respuesta
+
+
 #: Textos que necesita el JavaScript de la página. Viajan como JSON en vez de
 #: quedar escritos en el .js: la fuente de traducción sigue siendo una sola.
 CLAVES_JS = (
