@@ -427,3 +427,9 @@ salida es idéntica a la de antes. Fuera de alcance también, y anotado como deu
 técnicos de fallo de `summarizer.py`, `verificacion.py` y `pubmed_client.py`, que siguen en
 español fijo. Se cubrió lo que ve el usuario en la web (interfaz, errores de formulario,
 avisos y errores de favoritos).
+
+2026-08-11 — [paper-search] `herramientas/generar_locales.py` genera los `_locales/`, y tiene
+un modo `--comprobar` que no escribe y sale con código 1 si lo generado no coincide con la
+fuente. Hay además un test (`test_los_locales_del_repo_estan_al_dia`) que falla si alguien
+edita `i18n/*.json` y no regenera: sin él, la extensión de la Fase 5.3 se llevaría textos
+viejos sin que nadie se enterara.

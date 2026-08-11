@@ -271,6 +271,29 @@ Las claves van en `snake_case` con prefijo de área (`form_`, `res_`, `fav_`,
 `alc_`…) y sin puntos: es lo único que admite `chrome.i18n`, y así la misma
 clave sirve para la web y para la extensión sin transformarla.
 
+### Generar los `_locales/` para la extensión de Chrome
+
+La extensión de Chrome (Fase 5.3) necesita las mismas cadenas en el formato
+propio de `chrome.i18n`. Se generan desde la misma fuente, sin mantener un
+segundo diccionario:
+
+```bash
+python herramientas/generar_locales.py
+python herramientas/generar_locales.py --salida ../chrome-extension/_locales
+python herramientas/generar_locales.py --comprobar   # ¿está al día?
+```
+
+Sale `_locales/<idioma>/messages.json`. El `manifest.json` de la extensión
+tendrá que declarar `"default_locale": "es"`.
+
+Después de editar `i18n/*.json`, hay que regenerar: un test
+(`test_los_locales_del_repo_estan_al_dia`) falla si se olvida.
+
+**Qué NO está traducido todavía**: la CLI (sus textos de `argparse` son otra
+superficie y no sirven a la extensión) y los mensajes técnicos de fallo de la
+API de Anthropic y de PubMed, que siguen en español. La web —interfaz, errores
+de formulario, avisos de alcance e idioma y errores de favoritos— sí lo está.
+
 ## Caché, límites y registro locales
 
 Todo vive en un único archivo SQLite, por defecto
@@ -423,6 +446,7 @@ paper-search/
 │   ├── favoritos.py              # papers marcados y sus notas
 │   ├── exportar.py               # texto plano para pegar en NotebookLM
 │   ├── i18n.py                   # traducción: cargador, traducir(), fallback
+│   ├── locales.py                # generador del formato chrome.i18n
 │   ├── summarizer.py             # resumen en lenguaje llano
 │   ├── verificacion.py           # verificación del resumen + reintentos
 │   ├── db.py                     # SQLite local: conexión, esquema, migraciones

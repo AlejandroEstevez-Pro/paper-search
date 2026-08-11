@@ -1,0 +1,360 @@
+{
+  "alc_aviso_ambiguo": {
+    "description": "El clasificador no sitúa el término con seguridad dentro de las enfermedades raras. $motivo$ es una frase del modelo y ya termina en punto.",
+    "message": "The term «$termino$» could not be confidently classified as within the scope of this tool (rare diseases): $motivo$ The search was run anyway; interpret the results with caution.",
+    "placeholders": {
+      "motivo": {
+        "content": "$2"
+      },
+      "termino": {
+        "content": "$1"
+      }
+    }
+  },
+  "alc_aviso_no_concluyente": {
+    "description": "La verificación de alcance no se pudo completar (fallo de API, falta de clave). Se deja pasar la búsqueda.",
+    "message": "It was not possible to check whether «$termino$» falls within the scope of this tool (rare diseases): $motivo$. The search was run anyway.",
+    "placeholders": {
+      "motivo": {
+        "content": "$2"
+      },
+      "termino": {
+        "content": "$1"
+      }
+    }
+  },
+  "alc_aviso_sin_sujeto": {
+    "description": "Búsqueda solo por autor: no hay término médico que clasificar, así que el guardarraíl de alcance no puede pronunciarse. Se avisa y se deja pasar.",
+    "message": "This search includes no disease term or pathogen —only filters such as the author— so it was not possible to check whether it falls within the scope of this tool (rare diseases). The results may include work outside that scope. The search was run anyway."
+  },
+  "alc_mensaje_bloqueo": {
+    "description": "Término fuera de alcance: la búsqueda se bloquea antes de tocar PubMed.",
+    "message": "The term «$termino$» is outside the scope of this tool, which is limited to genes and syndromes related to rare diseases. Reason: $motivo$\nNo search was sent to PubMed. Try a gene (e.g. SCN1A) or a rare syndrome (e.g. Dravet syndrome).",
+    "placeholders": {
+      "motivo": {
+        "content": "$2"
+      },
+      "termino": {
+        "content": "$1"
+      }
+    }
+  },
+  "app_descripcion": {
+    "message": "Search the scientific literature on rare diseases in PubMed and get a summary with verifiable references."
+  },
+  "app_nombre": {
+    "message": "paper-search"
+  },
+  "app_titulo": {
+    "message": "paper-search — PubMed in plain language"
+  },
+  "comun_aviso_no_diagnostico": {
+    "description": "Aviso médico completo. Viaja con el texto exportado a NotebookLM, donde ya no hay interfaz que lo recuerde.",
+    "message": "This tool is an aid for searching and summarising the literature. It is not a diagnostic tool and does not constitute medical advice. Always check every statement against the original paper using its PMID."
+  },
+  "comun_aviso_web_corto": {
+    "description": "Aviso médico del banner de la web. Versión corta del que viaja en el texto exportado (comun_aviso_no_diagnostico).",
+    "message": "This is not a diagnostic tool and does not provide medical advice. Check every statement against the original paper using its PMID."
+  },
+  "comun_etiqueta_aviso": {
+    "message": "Notice:"
+  },
+  "err_campo_dias": {
+    "description": "Nombre del campo «ventana en días», usado dentro de err_no_entero y err_no_positivo.",
+    "message": "The window in days"
+  },
+  "err_campo_max": {
+    "description": "Nombre del campo «máximo de resultados», usado dentro de err_no_entero y err_no_positivo.",
+    "message": "The maximum number of results"
+  },
+  "err_no_entero": {
+    "description": "Error de formulario cuando un campo numérico no es un entero.",
+    "message": "$campo$ must be a whole number.",
+    "placeholders": {
+      "campo": {
+        "content": "$1"
+      }
+    }
+  },
+  "err_no_positivo": {
+    "description": "Error de formulario cuando un campo numérico no es mayor que 0.",
+    "message": "$campo$ must be greater than 0.",
+    "placeholders": {
+      "campo": {
+        "content": "$1"
+      }
+    }
+  },
+  "err_sin_criterios": {
+    "message": "Enter a gene, syndrome or search term, or use the advanced search to search by author or pathogen."
+  },
+  "err_titulo_busqueda": {
+    "message": "The search could not be completed."
+  },
+  "exp_ayuda": {
+    "message": "Paste it as a text source in NotebookLM or Gemini Notebook. It includes the search term, the summary with its PMIDs, the references and the medical notice."
+  },
+  "exp_boton_copiado": {
+    "message": "Copied!"
+  },
+  "exp_boton_copiar": {
+    "message": "Copy for NotebookLM"
+  },
+  "exp_fallo": {
+    "message": "Could not copy automatically (the browser is not granting clipboard access). The text is selected above: copy it with Ctrl+C."
+  },
+  "fav_boton_guardar_nota": {
+    "message": "Save note"
+  },
+  "fav_boton_marcado": {
+    "description": "Botón de un resultado que YA está en favoritos. En la web lleva delante una estrella llena.",
+    "message": "In favourites"
+  },
+  "fav_boton_quitar": {
+    "message": "Remove from favourites"
+  },
+  "fav_boton_sin_marcar": {
+    "description": "Botón de un resultado que NO está en favoritos. En la web lleva delante una estrella vacía.",
+    "message": "Save to favourites"
+  },
+  "fav_confirmar_borrar_nota": {
+    "description": "Confirmación antes de desmarcar un favorito que tiene nota escrita, mostrando la nota que se va a perder.",
+    "message": "This favourite has a note, which will be deleted:\n\n«$nota$»\n\nRemove it from favourites?",
+    "placeholders": {
+      "nota": {
+        "content": "$1"
+      }
+    }
+  },
+  "fav_confirmar_quitar": {
+    "message": "This favourite has a note, which will be deleted. Remove it anyway?"
+  },
+  "fav_descripcion": {
+    "message": "Papers you have saved, with your notes. The data comes from the local database: PubMed is not queried to show them."
+  },
+  "fav_err_no_marcado": {
+    "description": "Se intentó anotar un paper que no está en favoritos.",
+    "message": "PMID $pmid$ is not in favourites, so a note cannot be added to it. Save it to favourites first.",
+    "placeholders": {
+      "pmid": {
+        "content": "$1"
+      }
+    }
+  },
+  "fav_err_pmid_desconocido": {
+    "description": "Se intentó marcar un PMID que no está en la tabla local de papers.",
+    "message": "PMID $pmid$ is not in the local database, so it cannot be saved to favourites. Only papers that have appeared in a previous search can be saved: search first for the term that returns it and save it from there.",
+    "placeholders": {
+      "pmid": {
+        "content": "$1"
+      }
+    }
+  },
+  "fav_err_pmid_invalido": {
+    "description": "El PMID recibido no es un número.",
+    "message": "«$pmid$» does not look like a PMID: a PMID is a number, such as 38123456.",
+    "placeholders": {
+      "pmid": {
+        "content": "$1"
+      }
+    }
+  },
+  "fav_err_pmid_vacio": {
+    "message": "A PMID is required."
+  },
+  "fav_error_guardar": {
+    "message": "The favourite could not be saved."
+  },
+  "fav_error_servidor": {
+    "message": "Could not reach the local server."
+  },
+  "fav_error_titulo": {
+    "message": "The operation could not be completed."
+  },
+  "fav_etiqueta_nota": {
+    "message": "Personal note"
+  },
+  "fav_marcado_el": {
+    "description": "Fecha en que se marcó el favorito.",
+    "message": "Saved on $fecha$",
+    "placeholders": {
+      "fecha": {
+        "content": "$1"
+      }
+    }
+  },
+  "fav_nota_actualizada": {
+    "description": "Fecha de la última edición de la nota. Va detrás de fav_marcado_el, separado por una coma.",
+    "message": "note updated on $fecha$",
+    "placeholders": {
+      "fecha": {
+        "content": "$1"
+      }
+    }
+  },
+  "fav_placeholder_nota": {
+    "message": "Write here whatever you want to remember about this paper"
+  },
+  "fav_titulo": {
+    "message": "My favourites"
+  },
+  "fav_titulo_lista": {
+    "description": "Encabezado de la lista de favoritos, con cuántos hay.",
+    "message": "Saved ($total$)",
+    "placeholders": {
+      "total": {
+        "content": "$1"
+      }
+    }
+  },
+  "fav_titulo_pagina": {
+    "message": "My favourites — paper-search"
+  },
+  "fav_vacio": {
+    "message": "You have not saved any papers yet. Search for something and press «Save to favourites» on the results you are interested in."
+  },
+  "fil_ayuda": {
+    "message": "This filters what is already on screen and does not query PubMed again. To find more articles by an author, put it in «Advanced search» and run the search again."
+  },
+  "fil_contador": {
+    "description": "Contador de los filtros de pantalla. Dice siempre «N de M» para dejar claro que filtrar no es buscar: no puede traer resultados nuevos.",
+    "message": "$visibles$ of $total$ results shown",
+    "placeholders": {
+      "total": {
+        "content": "$2"
+      },
+      "visibles": {
+        "content": "$1"
+      }
+    }
+  },
+  "fil_etiqueta_autor": {
+    "message": "Narrow by author"
+  },
+  "fil_etiqueta_patogeno": {
+    "message": "Narrow by pathogen"
+  },
+  "fil_placeholder_autor": {
+    "message": "Filters the results below"
+  },
+  "fil_placeholder_patogeno": {
+    "message": "Searches title and abstract"
+  },
+  "form_ayuda_avanzada": {
+    "message": "These are added to the query sent to PubMed. You can search by author alone, with no term."
+  },
+  "form_boton_buscando": {
+    "message": "Searching…"
+  },
+  "form_boton_buscar": {
+    "message": "Search"
+  },
+  "form_buscando": {
+    "message": "Searching PubMed and generating the summary…"
+  },
+  "form_busqueda_avanzada": {
+    "message": "Advanced search"
+  },
+  "form_etiqueta_autor": {
+    "message": "Author"
+  },
+  "form_etiqueta_dias": {
+    "message": "Window (days)"
+  },
+  "form_etiqueta_forzar": {
+    "message": "Regenerate the summary even if a recent one is in the local cache"
+  },
+  "form_etiqueta_max": {
+    "message": "Max. papers"
+  },
+  "form_etiqueta_patogeno": {
+    "message": "Pathogen"
+  },
+  "form_etiqueta_termino": {
+    "message": "Gene, syndrome or term"
+  },
+  "form_placeholder_autor": {
+    "message": "e.g. Scheffer IE"
+  },
+  "form_placeholder_patogeno": {
+    "message": "e.g. Toxoplasma gondii"
+  },
+  "form_placeholder_termino": {
+    "message": "e.g. PMM2-CDG, Ehlers-Danlos syndrome, TTR"
+  },
+  "idi_aviso": {
+    "description": "El término parece escrito en español, catalán, euskera o gallego. No se nombra la lengua concreta a propósito: el vocabulario médico se solapa entre las tres romances y acertar sería azar.",
+    "message": "The term «$termino$» appears to be written in Spanish or in one of Spain's co-official languages (Catalan, Basque or Galician). PubMed indexes mostly English-language articles, so you will probably find far fewer results than exist: try rewriting it in English (for example «Dravet syndrome» instead of «síndrome de Dravet», or the gene name, which is written the same in every language). The search was run anyway with the term as typed.",
+    "placeholders": {
+      "termino": {
+        "content": "$1"
+      }
+    }
+  },
+  "nav_idioma": {
+    "message": "Language"
+  },
+  "nav_mis_favoritos": {
+    "message": "My favourites"
+  },
+  "nav_volver_a_buscar": {
+    "message": "Back to search"
+  },
+  "ord_etiqueta": {
+    "message": "Sort by"
+  },
+  "ord_fecha": {
+    "message": "Most recent first"
+  },
+  "ord_relevancia": {
+    "message": "Most relevant first (according to PubMed)"
+  },
+  "res_desde_cache": {
+    "description": "El resumen se sirvió de la caché local en vez de generarse ahora.",
+    "message": "Served from the local cache — originally generated on $fecha$ at $hora$ UTC. Tick «Regenerate the summary» to create a new one.",
+    "placeholders": {
+      "fecha": {
+        "content": "$1"
+      },
+      "hora": {
+        "content": "$2"
+      }
+    }
+  },
+  "res_estado_vacio": {
+    "message": "Enter a gene, syndrome or term and press «Search» to see the summary and references."
+  },
+  "res_etiqueta_aviso_alcance": {
+    "message": "Scope notice."
+  },
+  "res_etiqueta_aviso_idioma": {
+    "message": "Language notice."
+  },
+  "res_motivo_desconocido": {
+    "message": "Reason unknown."
+  },
+  "res_sin_resultados": {
+    "description": "PubMed respondió pero no devolvió ningún artículo.",
+    "message": "PubMed returned no articles for «$consulta$» in the last $dias$ days.",
+    "placeholders": {
+      "consulta": {
+        "content": "$1"
+      },
+      "dias": {
+        "content": "$2"
+      }
+    }
+  },
+  "res_sin_resultados_sugerencia": {
+    "message": "Try widening the day window, raising the maximum number of papers, or searching by gene name instead of syndrome."
+  },
+  "res_sin_resumen": {
+    "message": "A summary could not be generated for this search right now. The papers retrieved from PubMed are listed below unsummarised — review them directly."
+  },
+  "res_titulo_referencias": {
+    "message": "References"
+  },
+  "res_titulo_resumen": {
+    "message": "Summary"
+  }
+}
