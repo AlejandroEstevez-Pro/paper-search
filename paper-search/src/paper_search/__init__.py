@@ -35,7 +35,13 @@ from .config import RUTA_ENV, cargar_env
 from .db import BaseDatosError, abrir_db, ruta_db_por_defecto
 from .exportar import texto_para_notebooklm
 from .favoritos import Favorito, FavoritoError, Favoritos
-from .i18n import IDIOMA_REFERENCIA, IDIOMAS, normalizar_idioma, traducir
+from .i18n import (
+    IDIOMA_REFERENCIA,
+    IDIOMAS,
+    cargar_idioma,
+    normalizar_idioma,
+    traducir,
+)
 from .idioma import ResultadoIdioma, aviso_de_idioma, detectar_idioma
 from .limites import LimiteAlcanzadoError, LimitesUso
 from .orden import (
@@ -129,6 +135,7 @@ __all__ = [
     "aviso_de_idioma",
     "buscar_y_resumir",
     "cargar_env",
+    "cargar_idioma",
     "clave_fecha",
     "construir_consulta",
     "detectar_idioma",

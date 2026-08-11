@@ -35,6 +35,7 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
     buscar_y_resumir,
     cargar_env,
     clave_fecha,
+    cargar_idioma,
     normalizar_idioma,
     normalizar_orden,
     plegar_texto,
@@ -42,7 +43,9 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
     segmentar_resumen,
     texto_para_notebooklm,
 )
+from paper_search.i18n import IDIOMA_REFERENCIA  # noqa: E402
 from paper_search.orden import ETIQUETAS as ETIQUETAS_ORDEN  # noqa: E402
+from paper_search.pwa import RUTA_ESTADO, politica  # noqa: E402
 
 HOST = "127.0.0.1"
 PUERTO = 5000
@@ -147,6 +150,61 @@ def manifest():
     # El tipo que pide la especificación de Web App Manifest.
     respuesta.headers["Content-Type"] = "application/manifest+json"
     return respuesta
+
+
+@app.get("/sw.js")
+def service_worker():
+    """Service worker, servido desde la RAÍZ y no como archivo estático.
+
+    Un service worker solo controla su propia carpeta hacia abajo: desde
+    `/static/sw.js` su alcance sería `/static/` y no vería ni la portada ni
+    los favoritos. Por eso se sirve en `/sw.js`.
+
+    Se renderiza como plantilla para inyectarle la política de caché, que vive
+    en `pwa.py` y es la que sí se puede probar sin navegador.
+    """
+    cuerpo = render_template("sw.js", politica=politica())
+    respuesta = app.response_class(cuerpo, mimetype="text/javascript")
+    # Sin esto el navegador se quedaría con un service worker viejo hasta 24 h.
+    respuesta.headers["Cache-Control"] = "no-cache"
+    respuesta.headers["Service-Worker-Allowed"] = "/"
+    return respuesta
+
+
+@app.get(RUTA_ESTADO)
+def estado():
+    """¿Está vivo el servidor local? Es la única forma fiable de saberlo.
+
+    `navigator.onLine` responde a otra pregunta —si hay internet— y aquí se
+    equivocaría en los dos sentidos: sin wifi pero con el servidor encendido
+    los favoritos funcionan perfectamente, y con wifi pero el servidor apagado
+    no funciona nada. La página pregunta por las dos cosas por separado.
+    """
+    respuesta = jsonify({"estado": "vivo", "version": __import__("paper_search").__version__})
+    respuesta.headers["Cache-Control"] = "no-store"
+    return respuesta
+
+
+@app.get("/offline")
+def offline():
+    """Página de reserva cuando no hay ni servidor ni copia guardada.
+
+    Lleva dentro los textos de TODOS los idiomas y elige por la cookie: es la
+    única página que tiene que funcionar con el servidor apagado, así que no
+    puede pedirle la traducción a nadie. Los textos siguen saliendo de la
+    misma fuente (i18n/<idioma>.json), no son literales de la plantilla.
+    """
+    claves = [c for c in cargar_idioma(IDIOMA_REFERENCIA) if c.startswith("off_")]
+    textos = {
+        idioma: {clave: traducir(clave, idioma) for clave in claves}
+        for idioma in IDIOMAS
+    }
+    return render_template(
+        "offline.html",
+        textos_offline=textos,
+        idioma_referencia=IDIOMA_REFERENCIA,
+        color_tema=COLOR_TEMA,
+    )
 
 
 #: Textos que necesita el JavaScript de la página. Viajan como JSON en vez de

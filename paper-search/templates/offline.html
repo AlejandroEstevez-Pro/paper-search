@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="{{ idioma }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ t("off_titulo_pagina") }}</title>
+  <link rel="manifest" href="{{ url_for('manifest') }}">
+  <meta name="theme-color" content="{{ color_tema }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='classical.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='paper-search.css') }}">
+</head>
+<body>
+<div class="ps-page">
+  <div class="ps-wrap">
+
+    <header class="ps-header">
+      <h1 id="off-titulo">{{ t("off_titulo") }}</h1>
+    </header>
+
+    <section class="ps-section">
+      <div class="card ps-notice">
+        <p class="card-body" id="off-mensaje">{{ t("off_servidor_caido") }}</p>
+        <p class="card-body">
+          <button type="button" class="btn btn-primary" id="off-reintentar">{{ t("off_reintentar") }}</button>
+        </p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  // Esta página es la única que tiene que funcionar con el servidor apagado,
+  // así que no puede pedirle los textos: los lleva TODOS los idiomas dentro y
+  // elige por la cookie. Siguen saliendo de la misma fuente de traducción
+  // (i18n/<idioma>.json), no son literales escritos aquí.
+  var PS_OFFLINE = {{ textos_offline | tojson }};
+
+  var idioma = (document.cookie.match(/(?:^|;\s*)idioma=([^;]+)/) || [])[1];
+  var textos = PS_OFFLINE[idioma] || PS_OFFLINE[{{ idioma_referencia | tojson }}];
+
+  document.documentElement.lang = PS_OFFLINE[idioma] ? idioma : {{ idioma_referencia | tojson }};
+  document.title = textos.off_titulo_pagina;
+  document.getElementById('off-titulo').textContent = textos.off_titulo;
+  document.getElementById('off-mensaje').textContent = textos.off_servidor_caido;
+  document.getElementById('off-reintentar').textContent = textos.off_reintentar;
+
+  document.getElementById('off-reintentar').addEventListener('click', function () {
+    // Se vuelve a donde el usuario quería ir, no a esta página.
+    location.replace(sessionStorage.getItem('ps-ruta-fallida') || '/');
+  });
+</script>
+</body>
+</html>

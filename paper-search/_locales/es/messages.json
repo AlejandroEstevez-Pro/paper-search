@@ -300,6 +300,20 @@
   "nav_volver_a_buscar": {
     "message": "Volver a buscar"
   },
+  "off_reintentar": {
+    "message": "Reintentar"
+  },
+  "off_servidor_caido": {
+    "description": "Servidor local apagado. Distinto de no tener internet: aqui no funciona nada, ni siquiera los favoritos.",
+    "message": "No se ha podido contactar con paper-search en tu ordenador. Comprueba que está arrancado (doble clic en run.bat) y vuelve a intentarlo."
+  },
+  "off_titulo": {
+    "description": "Titular de la pagina que se muestra cuando el servidor local no responde.",
+    "message": "paper-search no está en marcha"
+  },
+  "off_titulo_pagina": {
+    "message": "Sin conexión — paper-search"
+  },
   "ord_etiqueta": {
     "message": "Ordenar por"
   },

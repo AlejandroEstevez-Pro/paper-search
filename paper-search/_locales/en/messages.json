@@ -300,6 +300,20 @@
   "nav_volver_a_buscar": {
     "message": "Back to search"
   },
+  "off_reintentar": {
+    "message": "Try again"
+  },
+  "off_servidor_caido": {
+    "description": "Servidor local apagado. Distinto de no tener internet: aqui no funciona nada, ni siquiera los favoritos.",
+    "message": "Could not reach paper-search on your computer. Check that it is running (double-click run.bat) and try again."
+  },
+  "off_titulo": {
+    "description": "Titular de la pagina que se muestra cuando el servidor local no responde.",
+    "message": "paper-search is not running"
+  },
+  "off_titulo_pagina": {
+    "message": "Offline — paper-search"
+  },
   "ord_etiqueta": {
     "message": "Sort by"
   },
