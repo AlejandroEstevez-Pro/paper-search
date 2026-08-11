@@ -1,0 +1,32 @@
+# Normalización de saltos de línea del repo paraguas.
+#
+# Regla general: en el repositorio TODO texto se guarda con LF, y también se
+# deja con LF en el árbol de trabajo (`eol=lf`). Así el repo no depende de la
+# configuración `core.autocrlf` de cada máquina, que es lo que provoca diffs
+# fantasma —archivos que aparecen como modificados enteros sin que nadie los
+# haya tocado— al trabajar desde otro equipo o al subir a GitHub.
+
+* text=auto eol=lf
+
+# ── Excepción: scripts por lotes de Windows ───────────────────────────────
+# Los .bat/.cmd se dejan en CRLF en el árbol de trabajo. cmd.exe puede tener
+# problemas con ficheros por lotes en LF puro según la versión de Windows,
+# sobre todo con bloques entre paréntesis (`if ... ( ... ) else ( ... )`),
+# que es justo lo que usa run.bat. En el repositorio se siguen guardando con
+# LF: `eol=crlf` solo afecta a cómo se escriben en disco al hacer checkout.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# ── Binarios: que git no intente convertir nada ───────────────────────────
+# Ninguno está versionado hoy, pero dejarlo escrito evita que un .png o una
+# base de datos añadidos más adelante se corrompan por una conversión de EOL.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
