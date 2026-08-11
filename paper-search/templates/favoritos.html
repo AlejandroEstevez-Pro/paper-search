@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ idioma }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mis favoritos — paper-search</title>
+  <title>{{ t("fav_titulo_pagina") }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='classical.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='paper-search.css') }}">
 </head>
@@ -12,21 +12,19 @@
   <div class="ps-wrap">
 
     <header class="ps-header">
-      <h1>Mis favoritos</h1>
-      <p class="text-muted ps-lead">Papers que has guardado, con tus notas. Los datos salen
-        de la base local: no se consulta PubMed para mostrarlos.</p>
-      <p><a href="{{ url_for('inicio') }}">← Volver a buscar</a></p>
+      <h1>{{ t("fav_titulo") }}</h1>
+      <p class="text-muted ps-lead">{{ t("fav_descripcion") }}</p>
+      <p><a href="{{ url_for('inicio') }}">← {{ t("nav_volver_a_buscar") }}</a></p>
     </header>
 
     <div class="ps-aviso">
-      <strong>Aviso: </strong>No es una herramienta de diagnóstico ni de asesoramiento
-      médico. Verifica cada afirmación en el paper original a partir de su PMID.
+      <strong>{{ t("comun_etiqueta_aviso") }} </strong>{{ t("comun_aviso_web_corto") }}
     </div>
 
     {% if error %}
       <section class="ps-section">
         <div class="card ps-notice">
-          <p class="card-body"><strong>No se ha podido completar la operación.</strong></p>
+          <p class="card-body"><strong>{{ t("fav_error_titulo") }}</strong></p>
           <p class="card-body">{{ error }}</p>
         </div>
       </section>
@@ -34,7 +32,7 @@
 
     {% if lista %}
       <section class="ps-section">
-        <h2 class="ps-section-title">Guardados ({{ lista | length }})</h2>
+        <h2 class="ps-section-title">{{ t("fav_titulo_lista", total=lista|length) }}</h2>
         <ol class="ps-refs">
           {% for favorito in lista %}
             <li class="card">
@@ -49,23 +47,23 @@
               {# La nota se edita siempre desde aquí, esté escrita o no. #}
               <form class="ps-form-nota" method="post" action="{{ url_for('guardar_nota') }}">
                 <input type="hidden" name="pmid" value="{{ favorito.pmid }}">
-                <label for="nota-{{ favorito.pmid }}">Nota personal</label>
+                <label for="nota-{{ favorito.pmid }}">{{ t("fav_etiqueta_nota") }}</label>
                 <textarea class="input" id="nota-{{ favorito.pmid }}" name="nota" rows="3"
-                          placeholder="Escribe aquí lo que quieras recordar de este paper">{{ favorito.nota or '' }}</textarea>
-                <button type="submit" class="btn">Guardar nota</button>
+                          placeholder="{{ t('fav_placeholder_nota') }}">{{ favorito.nota or '' }}</textarea>
+                <button type="submit" class="btn">{{ t("fav_boton_guardar_nota") }}</button>
               </form>
 
               <form method="post" action="{{ url_for('quitar_favorito') }}"
                     data-nota="{{ 'si' if favorito.tiene_nota else 'no' }}"
                     class="ps-form-quitar">
                 <input type="hidden" name="pmid" value="{{ favorito.pmid }}">
-                <button type="submit" class="btn">Quitar de favoritos</button>
+                <button type="submit" class="btn">{{ t("fav_boton_quitar") }}</button>
               </form>
 
               <p class="text-muted ps-cache-nota">
-                Marcado el {{ favorito.creado_en[:10] }}
+                {{ t("fav_marcado_el", fecha=favorito.creado_en[:10]) }}
                 {%- if favorito.actualizado_en != favorito.creado_en %},
-                  nota actualizada el {{ favorito.actualizado_en[:10] }}
+                  {{ t("fav_nota_actualizada", fecha=favorito.actualizado_en[:10]) }}
                 {%- endif %}.
               </p>
             </li>
@@ -74,8 +72,7 @@
       </section>
     {% elif not error %}
       <div class="card">
-        <p class="card-body ps-empty">Todavía no has guardado ningún paper. Busca algo y
-          pulsa «Guardar en favoritos» en los resultados que te interesen.</p>
+        <p class="card-body ps-empty">{{ t("fav_vacio") }}</p>
       </div>
     {% endif %}
 
@@ -87,7 +84,7 @@
   document.querySelectorAll('.ps-form-quitar').forEach(function (formulario) {
     formulario.addEventListener('submit', function (evento) {
       if (formulario.dataset.nota !== 'si') return;
-      if (!confirm('Este favorito tiene una nota, que se borrará. ¿Quitarlo igualmente?')) {
+      if (!confirm({{ t('fav_confirmar_quitar') | tojson }})) {
         evento.preventDefault();
       }
     });

@@ -399,12 +399,27 @@ Con el idioma por defecto en el de referencia, la salida de la CLI no cambia ni 
 duplicado. La alternativa —dejar esos textos fijos en español— habría dado una web en inglés
 con los avisos en español y los habría dejado fuera de la extensión de Chrome.
 
+2026-08-11 — [paper-search] Selección de idioma en la web: `?idioma=xx` conmuta y una cookie
+lo recuerda (precedencia parámetro > cookie > `es`). Se descarta la sesión de Flask porque
+exigiría un SECRET_KEY —un secreto más que configurar y guardar en una herramienta cuyo
+objetivo es funcionar en local sin configuración— y se descarta el parámetro solo porque
+`/buscar` es POST y `/favoritos/*` redirige: habría que arrastrar el idioma en un campo oculto
+de cada formulario y en cada enlace, y basta olvidar uno para volver al español. La cookie no
+firma nada y no hace falta: el valor se normaliza al leerlo y solo puede acabar siendo uno de
+los idiomas conocidos.
+
 2026-08-11 — [paper-search] Fallback de traducción: idioma pedido → idioma de referencia (`es`)
 → la propia clave. Nunca lanza. Devolver la clave (`form_boton_buscar` en pantalla) es
 deliberado: señala exactamente qué falta y dónde, mientras que un texto vacío pasaría
 desapercibido. Lo mismo con un placeholder sin valor: se deja visible (`$termino$`) en vez de
 sustituirlo por vacío. Hay tests que piden la página real con una fuente incompleta y con la
 fuente entera vacía, y comprueban que en ambos casos se sirve un 200.
+
+2026-08-11 — [paper-search] El JavaScript de la web no lleva ni un literal de texto: recibe
+las cadenas que necesita en un `PS_TEXTOS` serializado por el servidor, y las sustituye con la
+misma mecánica `$nombre$` que el servidor y que chrome.i18n. Así la fuente sigue siendo una
+sola incluso para los textos que solo existen en cliente (botón «¡Copiado!», contador de
+filtros, confirmación al borrar una nota).
 
 2026-08-11 — [paper-search] La CLI queda FUERA de la fase de i18n. Sus textos de `argparse`
 son otra superficie, no sirven a la extensión de Chrome, y con `idioma="es"` por defecto su

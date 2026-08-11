@@ -17,13 +17,14 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, make_response, redirect, render_template, request, url_for
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from paper_search import (  # noqa: E402  (tras ajustar sys.path)
     DIAS_POR_DEFECTO,
     MAX_RESULTADOS_POR_DEFECTO,
+    IDIOMAS,
     BaseDatosError,
     FavoritoError,
     Favoritos,
@@ -34,8 +35,10 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
     buscar_y_resumir,
     cargar_env,
     clave_fecha,
+    normalizar_idioma,
     normalizar_orden,
     plegar_texto,
+    traducir,
     segmentar_resumen,
     texto_para_notebooklm,
 )
@@ -52,16 +55,83 @@ cargar_env()
 app = Flask(__name__)
 
 
+
+#: Cookie donde se recuerda el idioma elegido. Se prefiere a la sesión de
+#: Flask porque la sesión exigiría un SECRET_KEY: un secreto más que
+#: configurar y guardar en una herramienta cuyo objetivo es funcionar en local
+#: sin configuración. La cookie no firma nada, y no hace falta: el valor se
+#: normaliza al leerlo y solo puede acabar siendo uno de los idiomas conocidos.
+COOKIE_IDIOMA = "idioma"
+DIAS_COOKIE_IDIOMA = 365
+
+
+def idioma_activo() -> str:
+    """Idioma de esta petición: `?idioma=` > cookie > el de referencia.
+
+    El parámetro de URL manda para que un enlace pueda conmutar el idioma y
+    para que los tests puedan pedirlo sin montar estado; la cookie lo recuerda
+    después, que es lo que hace que sobreviva a los POST de /buscar y a los
+    redirect de favoritos sin tener que arrastrar el idioma en cada formulario.
+    """
+    return normalizar_idioma(
+        request.args.get("idioma") or request.cookies.get(COOKIE_IDIOMA)
+    )
+
+
+@app.after_request
+def recordar_idioma(respuesta):
+    """Si la petición traía `?idioma=`, se recuerda en la cookie."""
+    pedido = request.args.get("idioma")
+    if pedido:
+        respuesta.set_cookie(
+            COOKIE_IDIOMA,
+            normalizar_idioma(pedido),
+            max_age=DIAS_COOKIE_IDIOMA * 24 * 3600,
+            samesite="Lax",
+        )
+    return respuesta
+
+
+#: Textos que necesita el JavaScript de la página. Viajan como JSON en vez de
+#: quedar escritos en el .js: la fuente de traducción sigue siendo una sola.
+CLAVES_JS = (
+    "form_boton_buscando",
+    "exp_boton_copiar",
+    "exp_boton_copiado",
+    "fav_boton_marcado",
+    "fav_boton_sin_marcar",
+    "fav_confirmar_borrar_nota",
+    "fav_error_guardar",
+    "fav_error_servidor",
+    "fil_contador",
+)
+
+
 @app.context_processor
 def utilidades_de_plantilla():
-    """Etiquetas del selector de orden y la clave de fecha con la que ordena.
+    """Todo lo que las plantillas necesitan y no viene del resultado.
+
+    `t` es la función de traducción: `t('form_boton_buscar')`. Recibe ya
+    resuelto el idioma de la petición, así que las plantillas nunca lo pasan.
 
     La plantilla escribe `data-fecha` con la misma función que usa el servidor
     (`clave_fecha`), para que el reordenado del navegador y el del servidor no
     puedan discrepar.
     """
+    idioma = idioma_activo()
+
+    def t(clave: str, **valores) -> str:
+        return traducir(clave, idioma, **valores)
+
     return {
-        "etiquetas_orden": ETIQUETAS_ORDEN,
+        "t": t,
+        "idioma": idioma,
+        "idiomas": IDIOMAS,
+        "textos_js": {clave: t(clave) for clave in CLAVES_JS},
+        "etiquetas_orden": {
+            "fecha": t("ord_fecha"),
+            "relevancia": t("ord_relevancia"),
+        },
         "clave_fecha": clave_fecha,
         "plegar_texto": plegar_texto,
     }
@@ -89,17 +159,15 @@ def buscar():
     # preferencia de visualización, no un dato de la búsqueda.
     orden = normalizar_orden(request.form.get("orden"))
 
-    max_resultados, error = _entero_positivo(max_crudo, "El máximo de resultados")
+    idioma = idioma_activo()
+    max_resultados, error = _entero_positivo(max_crudo, t_err("err_campo_max"), idioma)
     if error is None:
-        dias, error = _entero_positivo(dias_crudo, "La ventana en días")
+        dias, error = _entero_positivo(dias_crudo, t_err("err_campo_dias"), idioma)
     else:
         dias = DIAS_POR_DEFECTO
 
     if not (termino or autor or patogeno):
-        error = (
-            "Escribe un gen, síndrome o término de búsqueda, o usa la búsqueda "
-            "avanzada para buscar por autor o patógeno."
-        )
+        error = traducir("err_sin_criterios", idioma)
 
     # Los valores del formulario se devuelven tal cual los escribió la persona
     # para no perder lo que tenía puesto cuando hay un error.
@@ -132,13 +200,14 @@ def buscar():
             max_resultados=max_resultados,
             dias=dias,
             orden=orden,
+            idioma=idioma,
             db=db,
             forzar=forzar,
         )
         # Qué papers de esta búsqueda ya están en favoritos, para pintar el
         # botón en el estado correcto desde el primer render.
         if db is not None:
-            marcados = Favoritos(db).pmids()
+            marcados = Favoritos(db, idioma=idioma).pmids()
     except LimiteAlcanzadoError as exc:
         # Límite diario de uso propio: 429, el código HTTP de "demasiadas
         # peticiones". El mensaje ya dice qué límite fue y cuándo se resetea.
@@ -182,7 +251,7 @@ def ver_favoritos():
     except BaseDatosError as exc:
         return render_template("favoritos.html", lista=[], error=str(exc)), 500
     try:
-        lista = Favoritos(db).listar()
+        lista = Favoritos(db, idioma=idioma_activo()).listar()
     finally:
         db.close()
     return render_template("favoritos.html", lista=lista)
@@ -209,7 +278,7 @@ def alternar_favorito():
         return jsonify({"error": str(exc)}), 500
 
     try:
-        favoritos = Favoritos(db)
+        favoritos = Favoritos(db, idioma=idioma_activo())
         actual = favoritos.obtener(pmid)
         if actual is not None:
             if actual.tiene_nota and not confirmado:
@@ -245,9 +314,9 @@ def guardar_nota():
         return render_template("favoritos.html", lista=[], error=str(exc)), 500
 
     try:
-        Favoritos(db).anotar(pmid, nota)
+        Favoritos(db, idioma=idioma_activo()).anotar(pmid, nota)
     except FavoritoError as exc:
-        lista = Favoritos(db).listar()
+        lista = Favoritos(db, idioma=idioma_activo()).listar()
         return render_template("favoritos.html", lista=lista, error=str(exc)), 400
     finally:
         db.close()
@@ -265,23 +334,30 @@ def quitar_favorito():
     except BaseDatosError as exc:
         return render_template("favoritos.html", lista=[], error=str(exc)), 500
     try:
-        Favoritos(db).desmarcar(pmid)
+        Favoritos(db, idioma=idioma_activo()).desmarcar(pmid)
     except FavoritoError as exc:
-        lista = Favoritos(db).listar()
+        lista = Favoritos(db, idioma=idioma_activo()).listar()
         return render_template("favoritos.html", lista=lista, error=str(exc)), 400
     finally:
         db.close()
     return redirect(url_for("ver_favoritos"))
 
 
-def _entero_positivo(valor: str, etiqueta: str) -> tuple[int, str | None]:
+def t_err(clave: str) -> str:
+    """Nombre de un campo del formulario, en el idioma de la petición."""
+    return traducir(clave, idioma_activo())
+
+
+def _entero_positivo(
+    valor: str, etiqueta: str, idioma: str
+) -> tuple[int, str | None]:
     """Convierte un campo del formulario, devolviendo (valor, mensaje de error)."""
     try:
         numero = int(valor)
     except (TypeError, ValueError):
-        return 0, f"{etiqueta} tiene que ser un número entero."
+        return 0, traducir("err_no_entero", idioma, campo=etiqueta)
     if numero <= 0:
-        return 0, f"{etiqueta} tiene que ser mayor que 0."
+        return 0, traducir("err_no_positivo", idioma, campo=etiqueta)
     return numero, None
 
 

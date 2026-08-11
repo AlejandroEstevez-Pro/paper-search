@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ idioma }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>paper-search — PubMed en lenguaje llano</title>
+  <title>{{ t("app_titulo") }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='classical.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='paper-search.css') }}">
 </head>
@@ -13,61 +13,61 @@
 
     <header class="ps-header">
       <h1>paper-search</h1>
-      <p class="text-muted ps-lead">Busca literatura científica sobre enfermedades raras en
-        PubMed y genera un resumen con referencias verificables.</p>
-      <p><a href="{{ url_for('ver_favoritos') }}">★ Mis favoritos</a></p>
+      <p class="text-muted ps-lead">{{ t("app_descripcion") }}</p>
+      <p><a href="{{ url_for('ver_favoritos') }}">★ {{ t("nav_mis_favoritos") }}</a></p>
+      <p class="text-muted ps-idiomas">{{ t("nav_idioma") }}:
+        {% for cod in idiomas %}{% if cod == idioma %}<strong>{{ cod|upper }}</strong>{% else %}<a href="?idioma={{ cod }}">{{ cod|upper }}</a>{% endif %} {% endfor %}
+      </p>
     </header>
 
     <div class="ps-aviso">
-      <strong>Aviso: </strong>No es una herramienta de diagnóstico ni de asesoramiento
-      médico. Verifica cada afirmación en el paper original a partir de su PMID.
+      <strong>{{ t("comun_etiqueta_aviso") }} </strong>{{ t("comun_aviso_web_corto") }}
     </div>
 
     <form class="ps-form" method="post" action="{{ url_for('buscar') }}" id="formulario">
       <div class="field">
-        <label for="termino">Gen, síndrome o término</label>
+        <label for="termino">{{ t("form_etiqueta_termino") }}</label>
         <input class="input ps-input-term" id="termino" name="termino" type="text"
                value="{{ termino }}"
-               placeholder="p. ej. PMM2-CDG, síndrome de Ehlers-Danlos, TTR"
+               placeholder="{{ t('form_placeholder_termino') }}"
                autofocus required>
       </div>
       {# Criterios de BÚSQUEDA: entran en la consulta a PubMed y por tanto
          pueden traer artículos que el término solo no habría traído. #}
       <details class="ps-avanzada" {{ 'open' if autor or patogeno }}>
-        <summary>Búsqueda avanzada</summary>
+        <summary>{{ t("form_busqueda_avanzada") }}</summary>
         <div class="field">
-          <label for="autor">Autor</label>
+          <label for="autor">{{ t("form_etiqueta_autor") }}</label>
           <input class="input" id="autor" name="autor" type="text"
-                 value="{{ autor or '' }}" placeholder="p. ej. Scheffer IE">
+                 value="{{ autor or '' }}" placeholder="{{ t('form_placeholder_autor') }}">
         </div>
         <div class="field">
-          <label for="patogeno">Patógeno</label>
+          <label for="patogeno">{{ t("form_etiqueta_patogeno") }}</label>
           <input class="input" id="patogeno" name="patogeno" type="text"
-                 value="{{ patogeno or '' }}" placeholder="p. ej. Toxoplasma gondii">
+                 value="{{ patogeno or '' }}" placeholder="{{ t('form_placeholder_patogeno') }}">
         </div>
-        <p class="text-muted">Se añaden a la consulta que se manda a PubMed. Puedes
-          buscar solo por autor, sin término.</p>
+        <p class="text-muted">{{ t("form_ayuda_avanzada") }}</p>
       </details>
 
       <div class="ps-form-row">
         <div class="field ps-field-num">
-          <label for="max_resultados">Máx. papers</label>
+          <label for="max_resultados">{{ t("form_etiqueta_max") }}</label>
           <input class="input" id="max_resultados" name="max_resultados" type="number"
                  min="1" max="50" value="{{ max_resultados }}">
         </div>
         <div class="field ps-field-num">
-          <label for="dias">Ventana (días)</label>
+          <label for="dias">{{ t("form_etiqueta_dias") }}</label>
           <input class="input" id="dias" name="dias" type="number"
                  min="1" max="3650" value="{{ dias }}">
         </div>
         <div class="ps-actions">
-          <button type="submit" class="btn btn-primary" id="boton">Buscar</button>
+          <button type="submit" class="btn btn-primary" id="boton">{{ t("form_boton_buscar") }}</button>
         </div>
       </div>
       <div class="field">
         <label class="ps-check">
           <input type="checkbox" name="forzar" value="1">
-          Regenerar el resumen aunque haya uno reciente en la caché local
+          {{ t("form_etiqueta_forzar") }}
         </label>
       </div>
     </form>
@@ -76,14 +76,14 @@
        petición síncrona que tarda bastantes segundos. #}
     <div class="ps-loading" id="buscando">
       <span class="ps-spinner"></span>
-      Buscando papers en PubMed y generando resumen…
+      {{ t("form_buscando") }}
     </div>
 
     <div id="resultado">
       {% if error %}
         <section class="ps-section">
           <div class="card ps-notice">
-            <p class="card-body"><strong>No se ha podido completar la búsqueda.</strong></p>
+            <p class="card-body"><strong>{{ t("err_titulo_busqueda") }}</strong></p>
             <p class="card-body">{{ error }}</p>
           </div>
         </section>
@@ -93,34 +93,31 @@
         {% if resultado.aviso_idioma %}
           <section class="ps-section">
             <div class="card ps-notice">
-              <p class="card-body"><strong>Aviso de idioma. </strong>{{ resultado.aviso_idioma }}</p>
+              <p class="card-body"><strong>{{ t("res_etiqueta_aviso_idioma") }} </strong>{{ resultado.aviso_idioma }}</p>
             </div>
           </section>
         {% endif %}
         {% if resultado.aviso_alcance %}
           <section class="ps-section">
             <div class="card ps-notice">
-              <p class="card-body"><strong>Aviso de alcance. </strong>{{ resultado.aviso_alcance }}</p>
+              <p class="card-body"><strong>{{ t("res_etiqueta_aviso_alcance") }} </strong>{{ resultado.aviso_alcance }}</p>
             </div>
           </section>
         {% endif %}
         {% if resultado.total == 0 %}
           <section class="ps-section">
             <div class="card ps-notice">
-              <p class="card-body">PubMed no ha devuelto ningún artículo para
-                «{{ resultado.query }}» en los últimos {{ resultado.dias }} días.</p>
-              <p class="card-body">Prueba a ampliar la ventana de días, a subir el máximo de
-                papers o a buscar por el nombre del gen en vez del síndrome.</p>
+              <p class="card-body">{{ t("res_sin_resultados", consulta=resultado.query, dias=resultado.dias) }}</p>
+              <p class="card-body">{{ t("res_sin_resultados_sugerencia") }}</p>
             </div>
           </section>
         {% else %}
           <section class="ps-section">
-            <h2 class="ps-section-title">Resumen</h2>
+            <h2 class="ps-section-title">{{ t("res_titulo_resumen") }}</h2>
             {% if resultado.desde_cache %}
-              <p class="text-muted ps-cache-nota">Servido desde la caché local —
-                generado originalmente el {{ resultado.cache_creado_en[:10] }}
-                a las {{ resultado.cache_creado_en[11:16] }} UTC. Marca
-                «Regenerar el resumen» para crear uno nuevo.</p>
+              <p class="text-muted ps-cache-nota">{{ t("res_desde_cache",
+                 fecha=resultado.cache_creado_en[:10],
+                 hora=resultado.cache_creado_en[11:16]) }}</p>
             {% endif %}
             {% if parrafos %}
               <div class="ps-summary">
@@ -136,51 +133,42 @@
                  de alternativa visible si el portapapeles no está disponible. #}
               <div class="ps-exportar">
                 <button type="button" class="btn" id="copiar-notebooklm"
-                        data-original="Copiar para NotebookLM">Copiar para NotebookLM</button>
-                <p class="text-muted">Pégalo como fuente de texto en NotebookLM o
-                  Gemini Notebook. Incluye el término buscado, el resumen con sus
-                  PMIDs, las referencias y el aviso médico.</p>
+                        data-original="{{ t('exp_boton_copiar') }}">{{ t("exp_boton_copiar") }}</button>
+                <p class="text-muted">{{ t("exp_ayuda") }}</p>
                 <textarea id="texto-notebooklm" class="input" rows="12" readonly
                           hidden>{{ texto_exportado }}</textarea>
-                <p class="card-body" id="fallo-copiar" hidden>No se ha podido copiar
-                  automáticamente (el navegador no da acceso al portapapeles).
-                  El texto está seleccionado aquí arriba: cópialo con Ctrl+C.</p>
+                <p class="card-body" id="fallo-copiar" hidden>{{ t("exp_fallo") }}</p>
               </div>
             {% else %}
               <div class="card ps-notice">
-                <p class="card-body">No se pudo generar un resumen para esta búsqueda en este
-                  momento. A continuación se muestran los papers recuperados de PubMed sin
-                  resumir — revísalos directamente.</p>
-                <p class="card-body">{{ resultado.error_resumen or 'Motivo desconocido.' }}</p>
+                <p class="card-body">{{ t("res_sin_resumen") }}</p>
+                <p class="card-body">{{ resultado.error_resumen or t("res_motivo_desconocido") }}</p>
               </div>
             {% endif %}
           </section>
 
           <section class="ps-section">
-            <h2 class="ps-section-title">Referencias</h2>
+            <h2 class="ps-section-title">{{ t("res_titulo_referencias") }}</h2>
 
             {# Filtros de PANTALLA: solo esconden filas de las que ya están.
                NO son una búsqueda: no pueden traer nada nuevo. Por eso el
                contador dice siempre "N de M", nunca un número a secas. #}
             <div class="ps-refinar">
               <div class="field">
-                <label for="filtro-autor">Afinar por autor</label>
+                <label for="filtro-autor">{{ t("fil_etiqueta_autor") }}</label>
                 <input class="input" id="filtro-autor" type="text"
-                       placeholder="Filtra los resultados de abajo">
+                       placeholder="{{ t('fil_placeholder_autor') }}">
               </div>
               <div class="field">
-                <label for="filtro-patogeno">Afinar por patógeno</label>
+                <label for="filtro-patogeno">{{ t("fil_etiqueta_patogeno") }}</label>
                 <input class="input" id="filtro-patogeno" type="text"
-                       placeholder="Busca en título y abstract">
+                       placeholder="{{ t('fil_placeholder_patogeno') }}">
               </div>
               <p class="text-muted" id="contador-filtro"
                  data-total="{{ resultado.total }}">
-                {{ resultado.total }} de {{ resultado.total }} resultados mostrados
+                {{ t("fil_contador", visibles=resultado.total, total=resultado.total) }}
               </p>
-              <p class="text-muted">
-                Esto filtra lo que ya está en pantalla y no vuelve a consultar PubMed.
-                Para buscar más artículos de un autor, ponlo en «Búsqueda avanzada» y
-                lanza la búsqueda otra vez.</p>
+              <p class="text-muted">{{ t("fil_ayuda") }}</p>
             </div>
 
             {# Reordenar es puramente local: los datos de orden viajan en cada
@@ -188,7 +176,7 @@
                Así cambiar de criterio no vuelve a consultar PubMed ni pierde
                la búsqueda, que llegó por POST. #}
             <div class="field ps-field-num">
-              <label for="orden">Ordenar por</label>
+              <label for="orden">{{ t("ord_etiqueta") }}</label>
               <select class="input" id="orden">
                 {% for clave, etiqueta in etiquetas_orden.items() %}
                   <option value="{{ clave }}" {{ 'selected' if resultado.orden == clave }}>{{ etiqueta }}</option>
@@ -213,7 +201,7 @@
                   <button type="button" class="ps-fav"
                           data-pmid="{{ paper.pmid }}"
                           aria-pressed="{{ 'true' if paper.pmid in favoritos else 'false' }}">
-                    {{ '★ En favoritos' if paper.pmid in favoritos else '☆ Guardar en favoritos' }}
+                    {{ ("★ " ~ t("fav_boton_marcado")) if paper.pmid in favoritos else ("☆ " ~ t("fav_boton_sin_marcar")) }}
                   </button>
                 </li>
               {% endfor %}
@@ -222,8 +210,7 @@
         {% endif %}
       {% elif not error %}
         <div class="card">
-          <p class="card-body ps-empty">Introduce un gen, síndrome o término y pulsa «Buscar»
-            para ver el resumen y las referencias.</p>
+          <p class="card-body ps-empty">{{ t("res_estado_vacio") }}</p>
         </div>
       {% endif %}
     </div>
@@ -232,6 +219,21 @@
 </div>
 
 <script>
+  // Textos para el JS, servidos desde la MISMA fuente de traducción que las
+  // plantillas (i18n/<idioma>.json). Aquí no se escribe ningún literal.
+  var PS_TEXTOS = {{ textos_js | tojson }};
+
+  // Mismo mecanismo de placeholders que el servidor y que chrome.i18n:
+  // `$nombre$` se sustituye por su valor.
+  function psTexto(clave, valores) {
+    var texto = PS_TEXTOS[clave] || clave;
+    if (!valores) return texto;
+    return texto.replace(/\$([a-z][a-z0-9_]*)\$/g, function (todo, nombre) {
+      return Object.prototype.hasOwnProperty.call(valores, nombre)
+        ? valores[nombre] : todo;
+    });
+  }
+
   // La búsqueda es una petición POST síncrona y puede tardar: se enseña el
   // estado "buscando", se oculta el resultado anterior para no dar la impresión
   // de que ya está, y se bloquea el botón para no lanzar dos a la vez.
@@ -240,7 +242,7 @@
     document.getElementById('resultado').style.display = 'none';
     var boton = document.getElementById('boton');
     boton.disabled = true;
-    boton.textContent = 'Buscando…';
+    boton.textContent = psTexto('form_boton_buscando');
   });
 
   // Reordenar los resultados ya mostrados, sin tocar el servidor. El conjunto
@@ -278,7 +280,7 @@
       var texto = caja.value;
 
       var alCopiar = function () {
-        botonCopiar.textContent = '¡Copiado!';
+        botonCopiar.textContent = psTexto('exp_boton_copiado');
         setTimeout(function () {
           botonCopiar.textContent = botonCopiar.dataset.original;
         }, 2000);
@@ -323,7 +325,8 @@
       if (encaja) visibles++;
     });
     var total = contador.dataset.total;
-    contador.textContent = visibles + ' de ' + total + ' resultados mostrados';
+    contador.textContent = psTexto('fil_contador',
+                                   {visibles: visibles, total: total});
   }
 
   if (filtroAutor && filtroPatogeno) {
@@ -351,24 +354,26 @@
       .then(function (respuesta) {
         boton.disabled = false;
         if (!respuesta.ok) {
-          alert(respuesta.datos.error || 'No se ha podido guardar el favorito.');
+          alert(respuesta.datos.error || psTexto('fav_error_guardar'));
           return;
         }
         // Desmarcar algo con nota: avisar de lo que se pierde y reintentar.
         if (respuesta.datos.requiere_confirmacion) {
-          if (confirm('Este favorito tiene una nota, que se borrará:\n\n«'
-                      + respuesta.datos.nota + '»\n\n¿Quitarlo de favoritos?')) {
+          if (confirm(psTexto('fav_confirmar_borrar_nota',
+                              {nota: respuesta.datos.nota}))) {
             alternarFavorito(boton, true);
           }
           return;
         }
         var esFavorito = respuesta.datos.favorito;
         boton.setAttribute('aria-pressed', esFavorito ? 'true' : 'false');
-        boton.textContent = esFavorito ? '★ En favoritos' : '☆ Guardar en favoritos';
+        boton.textContent = esFavorito
+          ? '★ ' + psTexto('fav_boton_marcado')
+          : '☆ ' + psTexto('fav_boton_sin_marcar');
       })
       .catch(function () {
         boton.disabled = false;
-        alert('No se ha podido contactar con el servidor local.');
+        alert(psTexto('fav_error_servidor'));
       });
   }
 </script>
