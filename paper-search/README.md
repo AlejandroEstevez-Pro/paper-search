@@ -1,0 +1,427 @@
+# paper-search
+
+Buscador/resumidor de papers de PubMed por gen o síndrome **relacionado con
+enfermedades raras**. Genera un resumen en lenguaje llano de los hallazgos
+recientes, siempre con trazabilidad a los PMIDs originales.
+
+> **No es una herramienta de diagnóstico ni de asesoramiento médico.** Es una
+> ayuda de búsqueda y síntesis bibliográfica. El resumen se limita a describir
+> qué dicen los papers recuperados, cada afirmación lleva detrás el PMID que la
+> respalda, y siempre conviene verificar en el paper original.
+
+El alcance está restringido: un clasificador comprueba antes de buscar que el
+término es plausible como gen o síndrome de enfermedades raras, y cada resumen
+pasa una verificación automática (trazabilidad de PMIDs y ausencia de consejo
+médico) antes de mostrarse. Ver "Qué esperar de una búsqueda" más abajo.
+
+Ver `docs/brief.md` para la spec completa de esta primera versión.
+
+## Instalación
+
+Requiere Python 3.10 o superior.
+
+```bash
+cd paper-search
+pip install -r requirements.txt
+```
+
+## Claves de API
+
+| Variable | ¿Obligatoria? | Para qué |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Sí, para el resumen | Genera el resumen en lenguaje llano y alimenta los dos guardarraíles (filtro de alcance y verificación del resumen). Sin ella la búsqueda funciona igual y se listan las referencias, pero no hay resumen (la CLI sale con código 2 explicando por qué) y el filtro de alcance deja pasar cualquier término con un aviso. |
+| `NCBI_API_KEY` | No | Sube el límite de PubMed de 3 a 10 peticiones/segundo. Gratis en <https://www.ncbi.nlm.nih.gov/account/>. |
+| `NCBI_EMAIL` | No | Email de contacto que NCBI pide para avisar de un uso abusivo accidental. Si no se define se usa el del autor del repo. |
+
+Hay dos formas de ponerlas. La segunda es la cómoda para el día a día,
+sobre todo con el modo doble clic, donde no hay terminal donde exportar nada.
+
+**1. Variables de entorno del sistema** (tienen prioridad):
+
+```powershell
+# PowerShell
+$env:ANTHROPIC_API_KEY = "sk-ant-..."
+```
+
+```bash
+# bash / zsh
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+**2. Un archivo `.env`** en la raíz de `paper-search/` (junto a `cli.py`).
+Copia la plantilla versionada y rellena la clave:
+
+```powershell
+# PowerShell
+Copy-Item .env.example .env
+```
+
+```bash
+# bash / zsh
+cp .env.example .env
+```
+
+```ini
+# paper-search/.env
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Se carga solo al arrancar la CLI o el servidor web, así que basta con guardarlo
+una vez. `.env` acepta las tres variables de la tabla de arriba.
+
+Si una variable está definida en el entorno **y** en el `.env`, gana la del
+entorno: el `.env` es el valor por defecto, no una imposición. Esto permite
+probar otra clave puntualmente sin editar el archivo.
+
+`.env` está en `.gitignore` y nunca debe subirse al repositorio. Lo que sí se
+versiona es `.env.example`, siempre con los valores vacíos.
+
+Las claves se leen siempre del entorno del proceso; nunca hay que escribirlas
+en el código, y en el modo web nunca llegan al navegador.
+
+## Uso
+
+```bash
+python cli.py buscar "SCN1A" --max 15 --dias 365
+python cli.py buscar "síndrome de Dravet" --max 10
+python cli.py buscar "SCN1A" --formato json > resultados.json
+python cli.py buscar "Dravet syndrome" --autor "Scheffer IE"
+python cli.py buscar --autor "Scheffer IE"          # solo autor
+python cli.py buscar "toxoplasmosis" --patogeno "Toxoplasma gondii"
+python cli.py buscar "SCN1A" --orden relevancia
+```
+
+| Argumento | Por defecto | Descripción |
+|---|---|---|
+| `término` (posicional) | — | Gen o síndrome (de enfermedades raras) a buscar. Opcional si se da `--autor` o `--patogeno` |
+| `--autor` | — | Filtra por autor (campo `[AU]` de PubMed) |
+| `--patogeno` | — | Filtra por patógeno |
+| `--max` | 15 | Número máximo de papers a traer |
+| `--dias` | 730 | Ventana de "recientes", en días |
+| `--orden` | `fecha` | `fecha` (más recientes primero) o `relevancia` |
+| `--formato` | `texto` | `texto` (resumen + referencias) o `json` |
+| `--forzar` | off | Regenera el resumen ignorando la caché local |
+
+### Favoritos
+
+```bash
+python cli.py favoritos listar
+python cli.py favoritos marcar 38123456 --nota "Revisar la tabla 2"
+python cli.py favoritos nota 38123456 "Nota corregida"
+python cli.py favoritos nota 38123456 --borrar
+python cli.py favoritos desmarcar 38123456        # pregunta si hay nota
+```
+
+Solo se pueden marcar papers que hayan aparecido en alguna búsqueda previa: sus
+datos ya están en la base local, así que marcar y listar **no consultan
+PubMed**. Un PMID desconocido falla con un mensaje que explica qué hacer, en vez
+de crear un favorito sin título que enseñar.
+
+Desmarcar borra también la nota. La CLI pregunta antes si hay una escrita
+(`--si` para saltarse la pregunta); sin terminal interactiva responde que no,
+para que un `pipe` no borre nada.
+
+Códigos de salida: `0` correcto (incluida una búsqueda legítima sin
+resultados), `1` error de uso (incluido un término fuera del alcance de
+enfermedades raras), `2` fallo de una API externa o resumen no generado,
+`3` límite diario de uso alcanzado.
+
+### Salida en modo texto
+
+Resumen en lenguaje llano, seguido de las referencias con título, autores,
+revista, año, PMID y enlace a PubMed.
+
+## Qué esperar de una búsqueda
+
+**Búsqueda válida** (p. ej. `SCN1A`, `síndrome de Dravet`): resumen en español
+en lenguaje llano donde cada afirmación termina con su cita `[PMID: ...]`,
+seguido de las referencias con enlace a PubMed. El resumen solo se muestra si
+ha superado la verificación automática: todos los PMIDs citados pertenecen a
+los artículos realmente recuperados y no contiene consejo médico dirigido al
+lector.
+
+**Término fuera de alcance** (p. ej. `gripe`, `hipertensión`, un término no
+médico): la búsqueda se bloquea **antes** de consultar PubMed, con un mensaje
+que explica el motivo y sugiere buscar un gen o un síndrome raro. En la CLI
+sale con código `1`; en la web aparece como error destacado. Nunca se disfraza
+de "sin resultados".
+
+**Término ambiguo** (p. ej. `epilepsia`, siglas con varios significados): la
+búsqueda se ejecuta, pero con un aviso visible pidiendo interpretar los
+resultados con cautela.
+
+**Término escrito en español, catalán, euskera o gallego** (p. ej. `síndrome de
+Dravet`, `Dravet sindromea`): la búsqueda se ejecuta **tal cual** —no se
+traduce nada— con un aviso de que PubMed indexa sobre todo en inglés y de que
+reescribir el término en inglés (o buscar por el nombre del gen, que es igual
+en todos los idiomas) suele devolver bastantes más resultados. La detección es
+local: no gasta llamadas a la API ni necesita la clave. Un nombre de gen
+(`SCN1A`) o de síndrome (`Smith-Lemli-Opitz`) nunca dispara el aviso.
+
+**Búsqueda solo por autor** (sin término ni patógeno): se ejecuta, con un aviso
+de que no se ha podido comprobar el alcance —no hay ningún término médico que
+clasificar— y de que los resultados pueden incluir trabajos del autor ajenos a
+las enfermedades raras. El autor **nunca** se le manda al filtro de alcance: un
+apellido no es un concepto médico. Este caso no gasta ninguna llamada a Claude.
+
+**Sin resultados**: se dice explícitamente, con sugerencias (ampliar la
+ventana de días, buscar por el gen en vez del síndrome).
+
+**Fallos**: nunca en silencio. Si PubMed falla, se muestra el error y no se
+inventa nada. Si falla la generación del resumen, se conservan y muestran las
+referencias reales con el motivo del fallo. Ningún resumen se muestra sin haber
+superado la verificación: un rechazo regenera el resumen con feedback, un fallo
+técnico de la propia llamada de verificación cuenta también como intento
+fallido, y agotados los 3 intentos el resumen se descarta explicando por qué
+(las referencias reales se muestran igualmente).
+
+**Coste**: cada búsqueda con resumen hace normalmente 3 llamadas a la API de
+Claude (filtro de alcance + resumen + verificación), y hasta 2 más por cada
+regeneración si la verificación rechaza el resumen. Repetir una búsqueda
+reciente no cuesta nada: se sirve desde la caché local (ver abajo).
+
+## Ordenar y afinar resultados
+
+**Orden.** Por defecto los resultados salen de más recientes a más antiguos;
+`--orden relevancia` (o el selector de la web) los pone en el orden que dio
+PubMed. Cambiar de orden es una operación **local**: no vuelve a consultar
+PubMed, no gasta llamadas y no cambia qué artículos hay. En empate de fecha
+—frecuente, porque muchos artículos solo traen el año— desempata el orden de
+relevancia, que es estable y reproducible.
+
+Para que "relevancia" signifique algo, la búsqueda pide a PubMed
+`sort=relevance` y guarda la posición devuelta. Eso implica que el conjunto que
+se trae son **los N más relevantes** de la ventana temporal, no los N más
+recientes; la ventana (`--dias`) se sigue aplicando igual.
+
+**Afinar en pantalla vs. buscar.** Son cosas distintas y la interfaz lo dice:
+
+- Los campos de «Búsqueda avanzada» (autor, patógeno) entran en la consulta que
+  se manda a PubMed, así que **pueden traer artículos nuevos**.
+- Los campos de «Afinar» de la web solo esconden filas de las que ya están.
+  **No consultan PubMed y no pueden traer nada nuevo.** Por eso el contador dice
+  siempre "N de M resultados mostrados": filtrar 15 resultados por autor y ver 2
+  no significa que ese autor tenga 2 artículos sobre el tema.
+
+## Llevar el resumen a NotebookLM
+
+En la web, bajo cada resumen hay un botón **«Copiar para NotebookLM»**. Copia al
+portapapeles una versión en texto plano del resultado:
+
+- el término buscado (y el autor o patógeno, si los hubo),
+- el resumen íntegro con sus citas `[PMID: ...]`,
+- las referencias con título, revista, PMID y enlace a PubMed,
+- el aviso de que esto no es una herramienta de diagnóstico.
+
+Para usarlo: pulsa el botón, abre [NotebookLM](https://notebooklm.google.com/)
+(o Gemini Notebook), añade una fuente del tipo **«Texto copiado»** y pega. El
+texto lleva el término de búsqueda de encabezado, así que la fuente se explica
+sola dentro del cuaderno sin tener que recordar de dónde salió.
+
+No hay integración automática con NotebookLM a propósito: hacerlo requeriría una
+librería no oficial y las credenciales de una cuenta de Google real. Copiar y
+pegar hace el mismo trabajo sin ese riesgo.
+
+Si el navegador no da acceso al portapapeles (permiso denegado, navegador
+antiguo, o servido por `http` fuera de `localhost`), el texto aparece en un
+cuadro ya seleccionado para copiarlo con Ctrl+C — nunca falla en silencio.
+
+Desde la CLI el equivalente es `--formato json`, o redirigir la salida de texto
+a un archivo:
+
+```bash
+python cli.py buscar "SCN1A" > scn1a.txt
+```
+
+## Caché, límites y registro locales
+
+Todo vive en un único archivo SQLite, por defecto
+`paper-search/datos/paper-search.db` (configurable con `PAPER_SEARCH_DB` en el
+`.env`). No hay servidor aparte y el archivo no se sube al repo. Si no se
+puede abrir, la búsqueda funciona igualmente — se avisa y se sigue sin caché
+ni registro.
+
+**Caché de resúmenes.** Antes de generar un resumen se comprueba si ya existe
+uno vigente para ese término *y ese mismo conjunto de papers*: si PubMed
+devuelve algún paper nuevo, la caché se ignora sola y el resumen se regenera.
+Un resumen servido desde caché lo indica claramente (CLI y web) junto con la
+fecha en que se generó. Caducidad: 30 días (`PAPER_SEARCH_CACHE_DIAS`). Para
+regenerar a mano: `--forzar` en la CLI o la casilla «Regenerar el resumen» en
+la web (ignoran también el veredicto de alcance cacheado). Los veredictos del
+filtro de alcance se cachean igualmente, así que repetir una búsqueda cacheada
+consume 0 llamadas a Claude.
+
+**Límites diarios de uso.** Dos límites independientes con reseteo a
+medianoche (hora local): búsquedas al día (50 por defecto,
+`PAPER_SEARCH_MAX_BUSQUEDAS_DIA`) y llamadas a la API de Claude al día (200
+por defecto, `PAPER_SEARCH_MAX_LLAMADAS_DIA`). Se cuenta cada llamada real —
+una búsqueda con reintentos de verificación puede consumir 5-7 — y al alcanzar
+un límite el mensaje dice cuál fue y cuándo se resetea (CLI: código de salida
+3; web: HTTP 429). Es independiente del rate limiting hacia PubMed, que sigue
+en `pubmed_client.py`.
+
+**Registro de acciones.** Cada búsqueda queda anotada: término, parámetros,
+resultado (éxito, sin resultados, bloqueo por alcance o por límite, error de
+PubMed o de resumen), si vino de caché, cuántas llamadas a Claude consumió y
+qué PMIDs devolvió. Sirve para auditoría/depuración y es la base del historial
+y los favoritos de la Fase 3; todavía no se muestra en la interfaz.
+
+## Modo doble clic (interfaz web local)
+
+Para uso diario sin terminal: doble clic en `run.bat`. Instala las dependencias
+la primera vez, arranca el servidor local y abre el navegador solo en
+<http://127.0.0.1:5000>. Cerrar la ventana de consola (o Ctrl+C) detiene el
+servidor.
+
+También se puede arrancar a mano:
+
+```bash
+python app.py
+```
+
+El formulario pide los mismos tres parámetros que la CLI (término, máx. papers,
+ventana en días) y devuelve exactamente el mismo resultado: por debajo llama a
+la misma función `buscar_y_resumir` del paquete.
+
+El servidor escucha solo en `127.0.0.1`, nunca en `0.0.0.0`: es una herramienta
+local para una persona, no un servicio de red. La clave de API vive únicamente
+en el proceso Python y nunca llega al navegador — por eso hay un backend y no
+un HTML suelto.
+
+Dentro del resumen, cada cita `[PMID: ...]` va resaltada, y debajo está la lista
+de referencias con enlace a PubMed: se ve de un vistazo qué afirmación se apoya
+en qué paper.
+
+### Estilos
+
+`static/classical.css` es el sistema de diseño (tokens de color, tipografía,
+espaciado y clases `.btn` / `.input` / `.card`), copiado tal cual del proyecto
+de Claude Design `b184134d-3e1e-4c07-b8fc-a88271b2fc6d`. **No se edita a mano**:
+si cambia el diseño se vuelve a copiar desde allí. Lo específico de esta página
+—rejilla, aviso, resaltado de PMIDs, spinner— vive en `static/paper-search.css`.
+
+Las fuentes (Cormorant Garamond y Lora) se cargan de Google Fonts; sin conexión
+la página cae a la tipografía del sistema y todo lo demás funciona igual.
+
+### Salida en modo JSON
+
+Pensado para que lo consuman otras herramientas del repo (ver
+`../docs/roadmap.md`). Estructura estable:
+
+```json
+{
+  "query": "SCN1A",
+  "resumen": "texto del resumen, o null si no se pudo generar",
+  "papers": [
+    {
+      "pmid": "42495533",
+      "titulo": "...",
+      "autores": ["Lascorz R", "Roth FC"],
+      "revista": "iScience",
+      "fecha": "2026-08-21",
+      "abstract": "...",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42495533/"
+    }
+  ],
+  "total": 1,
+  "dias": 365,
+  "error_resumen": null,
+  "aviso_alcance": null,
+  "aviso_idioma": null,
+  "orden": "fecha",
+  "criterios": {"termino": "SCN1A", "autor": null, "patogeno": null},
+  "desde_cache": false,
+  "cache_creado_en": null,
+  "aviso": "Esta herramienta es una ayuda de búsqueda..."
+}
+```
+
+`resumen` es `null` **siempre** que no haya un resumen real y verificado:
+nunca se rellena con texto aproximado ni se entrega sin verificar. Cuando es
+`null` por un fallo o un rechazo de la verificación, `error_resumen` explica el
+motivo. `aviso_alcance` se rellena si el término era ambiguo o el filtro de
+alcance no se pudo ejecutar; `aviso_idioma`, si el término parecía escrito en
+español, catalán, euskera o gallego. `desde_cache` y `cache_creado_en` indican
+si el resumen se sirvió desde la caché local y cuándo se generó originalmente.
+`orden` es el criterio con el que viene ordenado `papers`, y `criterios` lo que se
+escribió campo a campo (`query` es la consulta ya montada que se mandó a PubMed).
+
+## Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+Las respuestas de la API están mockeadas/grabadas, así que la suite es rápida y
+no depende de que PubMed o Anthropic estén disponibles (la persistencia se
+prueba contra una BD en memoria). Cubre, entre otros casos: que la API no
+devuelva resultados, que la API falle, el filtro de alcance (término válido,
+fuera de alcance, ambiguo, fallo de la verificación), la verificación del
+resumen (limpio, sin cita, con consejo médico, PMID inventado, reintentos
+agotados), la caché (hit, miss, caducada, `--forzar`), los límites diarios
+(por debajo, alcanzados, reseteo al cambiar de día) y el registro de acciones.
+
+## Arquitectura
+
+```
+paper-search/
+├── cli.py                        # solo argparse + printing, sin lógica
+├── app.py                        # servidor Flask local (modo doble clic)
+├── run.bat                       # doble clic: instala, arranca y abre el navegador
+├── templates/index.html          # formulario + resultados de la interfaz web
+├── static/classical.css          # sistema de diseño, copiado de Claude Design
+├── static/paper-search.css       # estilos propios de la página
+├── .env.example                  # plantilla de claves (el .env real no se sube)
+├── conftest.py                   # hace importable src/ en los tests
+├── datos/                        # BD SQLite local (no se versiona)
+├── src/paper_search/
+│   ├── __init__.py               # API pública: buscar_y_resumir(...)
+│   ├── config.py                 # carga del .env, sin pisar el entorno
+│   ├── pubmed_client.py          # esearch/efetch, rate limiting, parseo XML
+│   ├── alcance.py                # filtro de alcance (solo enfermedades raras)
+│   ├── idioma.py                 # aviso si el término no está en inglés
+│   ├── busqueda.py               # criterios (autor, patógeno) y filtros locales
+│   ├── orden.py                  # ordenación por fecha o relevancia
+│   ├── favoritos.py              # papers marcados y sus notas
+│   ├── exportar.py               # texto plano para pegar en NotebookLM
+│   ├── summarizer.py             # resumen en lenguaje llano
+│   ├── verificacion.py           # verificación del resumen + reintentos
+│   ├── db.py                     # SQLite local: conexión, esquema, migraciones
+│   ├── cache.py                  # caché de resúmenes y veredictos de alcance
+│   ├── limites.py                # límites diarios de uso propios
+│   ├── registro.py               # registro de acciones (auditoría, Fase 3)
+│   └── models.py                 # Paper, ResultadoBusqueda
+└── tests/
+```
+
+**Rate limiting.** El cliente espacia sus propias peticiones (3/s sin API key,
+10/s con ella) y reintenta los errores transitorios de NCBI con backoff
+exponencial, respetando la cabecera `Retry-After`. Quien llama no tiene que
+preocuparse de no pasarse dentro de un bucle.
+
+**Nunca se inventan resultados.** Si PubMed falla se lanza un error; si no hay
+artículos se dice explícitamente. Un registro sin PMID se descarta porque no
+sería verificable. Además, la verificación automática descarta cualquier
+resumen que cite un PMID ajeno a los artículos recuperados.
+
+## Limitaciones actuales
+
+- **Alcance restringido a enfermedades raras.** Un término médico ajeno a ellas
+  (enfermedades comunes) o no médico se bloquea antes de buscar. Términos
+  médicos ambiguos pasan con aviso. El filtro lo hace un modelo, así que puede
+  equivocarse en casos límite: si bloquea un término que crees legítimo, prueba
+  con el nombre del gen o el nombre oficial del síndrome.
+- **La fuente está en inglés.** PubMed indexa casi todo en inglés y los
+  abstracts que alimentan el resumen están en inglés; el resumen sí se escribe
+  en español. Buscar en español funciona a veces para nombres de síndrome muy
+  establecidos ("síndrome de Dravet"), pero es menos fiable que buscar por el
+  gen (`SCN1A`) o por el nombre en inglés. La herramienta todavía **no** avisa
+  automáticamente cuando el término está en español ni lo traduce — está
+  anotado como pendiente en `../docs/decisions.md`.
+- **La verificación no es infalible.** La capa determinista garantiza que
+  ningún PMID citado sea inventado, pero juzgar si una afirmación necesita cita
+  o constituye consejo médico lo hace un modelo. Por eso el aviso permanente:
+  verifica cada afirmación en el paper original.
+- Caché persistente de búsquedas y traducción automática de abstracts quedan
+  fuera de esta versión. La interfaz web local del modo doble clic es
+  deliberadamente mínima: un formulario síncrono, sin histórico ni exportación.

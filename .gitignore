@@ -1,0 +1,62 @@
+# .gitignore del repo paraguas. Cubre todos los componentes (paper-search y,
+# más adelante, symptom-classifier). `paper-search/.gitignore` mantiene además
+# sus propias reglas, que son las mismas: si se cambia una regla de claves o de
+# datos locales, revisar los dos archivos.
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ── Entornos virtuales ────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Tests y herramientas de desarrollo ────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# ── Claves y secretos ─────────────────────────────────────────────────────
+# OJO: no sustituir por `.env*`, que dejaría fuera `.env.example` — la
+# plantilla SÍ se versiona, siempre con los valores vacíos.
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# ── Datos locales del usuario ─────────────────────────────────────────────
+# SQLite de cada componente: caché de resúmenes, límites de uso y registro de
+# acciones. Son datos de quien usa la herramienta, no del repositorio.
+datos/
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Editores y sistema operativo ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Claude Code ───────────────────────────────────────────────────────────
+# Los ajustes compartidos del proyecto (.claude/settings.json) sí se versionan;
+# los personales de cada máquina, no.
+.claude/settings.local.json

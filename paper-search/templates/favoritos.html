@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mis favoritos — paper-search</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='classical.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='paper-search.css') }}">
+</head>
+<body>
+<div class="ps-page">
+  <div class="ps-wrap">
+
+    <header class="ps-header">
+      <h1>Mis favoritos</h1>
+      <p class="text-muted ps-lead">Papers que has guardado, con tus notas. Los datos salen
+        de la base local: no se consulta PubMed para mostrarlos.</p>
+      <p><a href="{{ url_for('inicio') }}">← Volver a buscar</a></p>
+    </header>
+
+    <div class="ps-aviso">
+      <strong>Aviso: </strong>No es una herramienta de diagnóstico ni de asesoramiento
+      médico. Verifica cada afirmación en el paper original a partir de su PMID.
+    </div>
+
+    {% if error %}
+      <section class="ps-section">
+        <div class="card ps-notice">
+          <p class="card-body"><strong>No se ha podido completar la operación.</strong></p>
+          <p class="card-body">{{ error }}</p>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if lista %}
+      <section class="ps-section">
+        <h2 class="ps-section-title">Guardados ({{ lista | length }})</h2>
+        <ol class="ps-refs">
+          {% for favorito in lista %}
+            <li class="card">
+              <span class="card-kicker">{{ '%02d' % loop.index }} · PMID: {{ favorito.pmid }}</span>
+              <a class="card-title" href="{{ favorito.paper.url }}" target="_blank" rel="noopener">{{ favorito.paper.titulo }}</a>
+              <p class="card-body ps-ref-meta">
+                {{ favorito.paper.autores_texto }}
+                {%- set detalle = [favorito.paper.revista, favorito.paper.anio or favorito.paper.fecha] | select | join(', ') -%}
+                {% if detalle %} — {{ detalle }}{% endif %}
+              </p>
+
+              {# La nota se edita siempre desde aquí, esté escrita o no. #}
+              <form class="ps-form-nota" method="post" action="{{ url_for('guardar_nota') }}">
+                <input type="hidden" name="pmid" value="{{ favorito.pmid }}">
+                <label for="nota-{{ favorito.pmid }}">Nota personal</label>
+                <textarea class="input" id="nota-{{ favorito.pmid }}" name="nota" rows="3"
+                          placeholder="Escribe aquí lo que quieras recordar de este paper">{{ favorito.nota or '' }}</textarea>
+                <button type="submit" class="btn">Guardar nota</button>
+              </form>
+
+              <form method="post" action="{{ url_for('quitar_favorito') }}"
+                    data-nota="{{ 'si' if favorito.tiene_nota else 'no' }}"
+                    class="ps-form-quitar">
+                <input type="hidden" name="pmid" value="{{ favorito.pmid }}">
+                <button type="submit" class="btn">Quitar de favoritos</button>
+              </form>
+
+              <p class="text-muted ps-cache-nota">
+                Marcado el {{ favorito.creado_en[:10] }}
+                {%- if favorito.actualizado_en != favorito.creado_en %},
+                  nota actualizada el {{ favorito.actualizado_en[:10] }}
+                {%- endif %}.
+              </p>
+            </li>
+          {% endfor %}
+        </ol>
+      </section>
+    {% elif not error %}
+      <div class="card">
+        <p class="card-body ps-empty">Todavía no has guardado ningún paper. Busca algo y
+          pulsa «Guardar en favoritos» en los resultados que te interesen.</p>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  // Quitar un favorito con nota borra la nota: se avisa antes de enviar.
+  document.querySelectorAll('.ps-form-quitar').forEach(function (formulario) {
+    formulario.addEventListener('submit', function (evento) {
+      if (formulario.dataset.nota !== 'si') return;
+      if (!confirm('Este favorito tiene una nota, que se borrará. ¿Quitarlo igualmente?')) {
+        evento.preventDefault();
+      }
+    });
+  });
+</script>
+</body>
+</html>

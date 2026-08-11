@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# Base de datos local del usuario (caché, límites, registro). No es parte del repo.
+datos/
+# Claves reales. Ojo: no cambiar por `.env*`, que dejaría fuera la plantilla
+# `.env.example`, que sí se versiona (siempre con los valores vacíos).
+.env

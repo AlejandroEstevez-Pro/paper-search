@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python \"c:\\\\Proyectos IA\\\\Enfermedades Raras\\\\rare-disease-tools\\\\paper-search\\\\app.py\")",
+      "PowerShell(try { Invoke-WebRequest -Uri \"http://127.0.0.1:5000/buscar\" -Method POST -Body @{termino=\"SCN1A\"; max_resultados=\"0\"; dias=\"365\"} -UseBasicParsing } catch { $sr = New-Object IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); $body = $sr.ReadToEnd\\(\\); $lines = $body -split \"`n\" | Where-Object { $_ -match 'class=\"error\"' }; Write-Output $lines })",
+      "PowerShell(try { Invoke-WebRequest -Uri \"http://127.0.0.1:5000/buscar\" -Method POST -Body @{termino=\"SCN1A\"; max_resultados=\"0\"; dias=\"365\"} -UseBasicParsing } catch { $sr = New-Object IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); $body = $sr.ReadToEnd\\(\\); Write-Output \"LONGITUD: $\\($body.Length\\)\"; Write-Output $body.Substring\\(0, [Math]::Min\\(400, $body.Length\\)\\) })",
+      "PowerShell(curl.exe -s -o \"$env:TEMP\\\\pv.html\" -w \"status=%{http_code}`n\" -X POST -d \"termino=SCN1A&max_resultados=0&dias=365\" http://127.0.0.1:5000/buscar; Select-String -Path \"$env:TEMP\\\\pv.html\" -Pattern 'class=\"error\"' -Context 0,1)",
+      "PowerShell(Write-Output \"ANTHROPIC_API_KEY definida: $\\([bool]$env:ANTHROPIC_API_KEY\\)\"; curl.exe -s -o \"$env:TEMP\\\\pv2.html\" -w \"status=%{http_code} tiempo=%{time_total}s`n\" -X POST --data-urlencode \"termino=SCN1A\" -d \"max_resultados=3&dias=365\" http://127.0.0.1:5000/buscar)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; python \"c:\\\\Proyectos IA\\\\Enfermedades Raras\\\\rare-disease-tools\\\\paper-search\\\\cli.py\" buscar \"SCN1A\" --max 3 --dias 365 2>$null | Select-String -Pattern \"PMID\")",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; python -m pytest \"c:\\\\Proyectos IA\\\\Enfermedades Raras\\\\rare-disease-tools\\\\paper-search\\\\tests\" -q)",
+      "PowerShell(curl.exe -s -o NUL -w \"GET / -> %{http_code}`n\" http://127.0.0.1:5000/)"
+    ]
+  }
+}

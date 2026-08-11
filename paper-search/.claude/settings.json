@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/test_exportar.py -q)",
+      "Bash(python -m pytest -q)"
+    ]
+  }
+}
