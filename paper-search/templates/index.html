@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ t("app_titulo") }}</title>
+  <link rel="manifest" href="{{ url_for('manifest') }}">
+  <meta name="theme-color" content="{{ color_tema }}">
+  <link rel="icon" href="{{ url_for('static', filename='iconos/icono-192.png') }}">
+  {# Cuando el service worker sirve esta pagina desde su cache, es la unica
+     pista de cuando se genero: el banner de "copia guardada" la usa. #}
+  <meta name="ps-generado" content="{{ generado_en }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='classical.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='paper-search.css') }}">
 </head>
@@ -23,6 +29,17 @@
     <div class="ps-aviso">
       <strong>{{ t("comun_etiqueta_aviso") }} </strong>{{ t("comun_aviso_web_corto") }}
     </div>
+
+    {# Avisos de conexion. Nacen ocultos y los enciende el JS segun DOS
+       senales distintas: si responde el servidor local (/api/estado) y si hay
+       internet. Son dos problemas distintos y merecen dos mensajes. #}
+    <div class="card ps-notice" id="ps-aviso-copia" hidden>
+      <p class="card-body"><strong id="ps-texto-copia"></strong></p>
+    </div>
+    <div class="card ps-notice" id="ps-aviso-internet" hidden>
+      <p class="card-body" id="ps-texto-internet"></p>
+    </div>
+
 
     <form class="ps-form" method="post" action="{{ url_for('buscar') }}" id="formulario">
       <div class="field">
@@ -222,6 +239,7 @@
   // Textos para el JS, servidos desde la MISMA fuente de traducción que las
   // plantillas (i18n/<idioma>.json). Aquí no se escribe ningún literal.
   var PS_TEXTOS = {{ textos_js | tojson }};
+  var PS_RUTA_ESTADO = {{ ruta_estado | tojson }};
 
   // Mismo mecanismo de placeholders que el servidor y que chrome.i18n:
   // `$nombre$` se sustituye por su valor.
@@ -377,5 +395,6 @@
       });
   }
 </script>
+<script src="{{ url_for('static', filename='conexion.js') }}" defer></script>
 </body>
 </html>

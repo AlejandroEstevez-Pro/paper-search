@@ -294,6 +294,60 @@ superficie y no sirven a la extensión) y los mensajes técnicos de fallo de la
 API de Anthropic y de PubMed, que siguen en español. La web —interfaz, errores
 de formulario, avisos de alcance e idioma y errores de favoritos— sí lo está.
 
+## Instalar como aplicación (PWA)
+
+La web se puede instalar como aplicación: se abre en su propia ventana, sin
+barra de direcciones ni pestañas, y con su icono en la barra de tareas. En
+Chrome o Edge, con paper-search en marcha, aparece el icono de instalar en la
+barra de direcciones.
+
+> Los iconos actuales (`static/iconos/`) son un **placeholder**: una lupa
+> generada a partir de los colores del CSS. Hay que sustituirlos por un icono
+> de verdad.
+
+### Qué funciona sin conexión y qué no
+
+paper-search corre en tu propio ordenador (`127.0.0.1`), así que «sin conexión»
+son dos cosas distintas y conviene no confundirlas:
+
+**Sin internet, con paper-search en marcha** — que es el caso normal, quedarse
+sin wifi:
+
+| | |
+|---|---|
+| Ver la interfaz | ✅ funciona |
+| Ver tus favoritos y sus notas | ✅ funciona |
+| Escribir, editar y borrar notas | ✅ funciona |
+| Marcar y desmarcar favoritos | ✅ funciona |
+| Buscar en PubMed | ❌ necesita internet |
+| Generar resúmenes | ❌ necesita internet |
+
+Los favoritos funcionan enteros porque la base de datos es local. Solo fallan
+PubMed y la API de Claude, que son servicios externos. La app te lo dice con un
+aviso y **no te deja lanzar una búsqueda que no puede funcionar**, en vez de
+dejarte esperando.
+
+**Con paper-search apagado** (no arrancaste `run.bat`, o lo cerraste):
+
+| | |
+|---|---|
+| Abrir la app y ver la interfaz | ✅ desde la copia guardada |
+| Ver los favoritos que visitaste antes | ⚠️ copia guardada, **solo lectura** |
+| Cualquier cosa que escriba | ❌ deshabilitado |
+| Buscar | ❌ |
+
+Cuando lo que ves es una copia guardada, sale un aviso arriba diciendo de qué
+momento es y que no se puede editar, y los formularios quedan deshabilitados.
+Es a propósito: una nota que borraste hace un rato seguiría apareciendo, y
+guardar cambios fallaría en silencio.
+
+**Lo que no hace, a propósito:**
+
+- No guarda resultados de búsqueda para enseñarlos sin conexión. Un resumen
+  viejo presentado como nuevo es justo lo que esta herramienta evita.
+- No encola cambios «para cuando vuelva la conexión». Si algo no se puede
+  guardar, se dice en el momento.
+
 ## Caché, límites y registro locales
 
 Todo vive en un único archivo SQLite, por defecto
@@ -447,6 +501,7 @@ paper-search/
 │   ├── exportar.py               # texto plano para pegar en NotebookLM
 │   ├── i18n.py                   # traducción: cargador, traducir(), fallback
 │   ├── locales.py                # generador del formato chrome.i18n
+│   ├── pwa.py                    # política de caché de la PWA
 │   ├── summarizer.py             # resumen en lenguaje llano
 │   ├── verificacion.py           # verificación del resumen + reintentos
 │   ├── db.py                     # SQLite local: conexión, esquema, migraciones

@@ -433,3 +433,72 @@ un modo `--comprobar` que no escribe y sale con código 1 si lo generado no coin
 fuente. Hay además un test (`test_los_locales_del_repo_estan_al_dia`) que falla si alguien
 edita `i18n/*.json` y no regenera: sin él, la extensión de la Fase 5.3 se llevaría textos
 viejos sin que nadie se enterara.
+
+2026-08-11 — [paper-search] Fase 5.2, PWA. El hallazgo que condiciona todo lo demás:
+paper-search se sirve desde 127.0.0.1, así que "sin conexión" son DOS situaciones distintas y
+solo una necesita service worker. (a) Sin internet con el servidor encendido: la página carga
+entera y los favoritos funcionan completos —el SQLite es local—; solo fallan PubMed y Claude.
+Esto ya funcionaba antes de la PWA. (b) Servidor local apagado: no responde nada, y ahí el
+service worker solo puede ofrecer HTML guardado de solo lectura. Lo que la PWA aporta de
+verdad es la instalabilidad (ventana propia, icono, sin cromo del navegador) y una degradación
+honesta en el caso (b), no "búsquedas offline", que no pueden existir.
+
+2026-08-11 — [paper-search] `navigator.onLine` NO se usa como única señal: responde a si hay
+internet, no a si Flask está vivo, y se equivocaría en los dos sentidos (sin wifi pero con el
+servidor encendido diría "sin conexión" cuando los favoritos funcionan; con wifi y el servidor
+apagado diría "conectado" cuando no funciona nada). Se usan dos señales independientes:
+`navigator.onLine` para saber si hay internet y un ping a `/api/estado` con timeout de 2 s
+para saber si el servidor local responde. Son dos problemas distintos y llevan dos mensajes
+distintos.
+
+2026-08-11 — [paper-search] Estrategias de caché: estáticos (CSS, JS, iconos, manifest) a
+cache-first con refresco por detrás; navegaciones (`/`, `/favoritos`, `/offline`) a
+network-first con la última copia como reserva; y TODO lo que no sea GET se deja pasar sin
+tocar. Esa última regla es la importante: un POST servido desde caché sería inventar un
+resultado —una búsqueda que no se hizo, una nota que no se guardó— y el service worker no
+intercepta esas peticiones en absoluto. Descartado también Background Sync para las notas:
+encolar "guardar" para reintentarlo luego y que el usuario cierre la ventana creyendo que se
+guardó es peor que fallar claro.
+
+2026-08-11 — [paper-search] Nunca se sirve un resultado de búsqueda desde la caché del service
+worker. Un resumen viejo presentado como nuevo es exactamente lo que el proyecto lleva cuatro
+fases evitando, y el hecho de que el fallo sea de red no lo hace más aceptable.
+
+2026-08-11 — [paper-search] Con el servidor apagado, `/favoritos` sí sirve la última copia
+guardada, pero marcada: un banner dice de qué momento es y que puede estar desactualizada, y
+se deshabilitan todos los campos y botones que escriben. Sin eso, una nota borrada hace un
+rato parecería vigente y editable, y cualquier intento de guardar fallaría en silencio. La
+marca de tiempo viaja en un `<meta name="ps-generado">` de cada página, que es la única pista
+de antigüedad que queda cuando la sirve el service worker.
+
+2026-08-11 — [paper-search] La política de caché vive en `src/paper_search/pwa.py`, en Python,
+y viaja al `sw.js` serializada como JSON. Motivo: la suite no tiene navegador ni Node, así que
+el JavaScript del service worker no se puede ejecutar en los tests; sacando la parte que
+DECIDE a Python se prueba de verdad, y en el `sw.js` queda solo la mecánica de `caches.match`
+/ `fetch`. Queda sin cubrir por la suite —y dicho en el propio archivo de tests— que el
+navegador registre el worker y que `caches` se comporte como se espera: eso hay que mirarlo a
+mano en las herramientas de desarrollo.
+
+2026-08-11 — [paper-search] El service worker se sirve en `/sw.js` y no como archivo estático:
+un service worker solo controla su carpeta hacia abajo, así que desde `/static/sw.js` su
+alcance sería `/static/` y no vería ni la portada ni los favoritos. Se acompaña de la cabecera
+`Service-Worker-Allowed: /` y de `Cache-Control: no-cache`, sin la cual el navegador podría
+quedarse hasta 24 h con un worker viejo.
+
+2026-08-11 — [paper-search] `conexion.js` está en la lista de precache, y hay un test que
+comprueba que TODO estático referenciado por las páginas lo está. No es cosmética: ese archivo
+es el que enciende el aviso de «copia guardada» y deshabilita los formularios, así que sin
+precachearlo la página servida desde caché se vería normal y editable — justo lo contrario de
+lo que se pretende.
+
+2026-08-11 — [paper-search] El manifest se sirve desde una ruta de Flask y no como archivo
+estático, para que el nombre y la descripción que se ven al instalar pasen por el sistema de
+traducción del punto 5.1. La página `/offline` es la excepción a ese sistema: como es la única
+que tiene que funcionar con el servidor apagado, lleva dentro los textos de TODOS los idiomas
+y elige por la cookie. Siguen saliendo de `i18n/<idioma>.json`; lo que cambia es que se
+serializan todos en vez de resolverse en el servidor.
+
+2026-08-11 — [paper-search] Los iconos de `static/iconos/` son PLACEHOLDER: una lupa generada
+con Pillow sobre los colores del CSS. Pillow se usó una sola vez para generarlos y los PNG
+están commiteados, así que NO entra en requirements.txt. Hay que sustituirlos por un icono de
+verdad antes de que esto se enseñe a nadie.

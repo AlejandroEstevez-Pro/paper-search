@@ -86,6 +86,10 @@ def recursos_a_precachear() -> tuple[str, ...]:
         RUTA_OFFLINE,
         "/static/classical.css",
         "/static/paper-search.css",
+        # Es lo que enciende el aviso de «copia guardada» y deshabilita los
+        # formularios: sin precachearlo, la página servida desde caché se
+        # vería normal y editable, que es justo lo que hay que evitar.
+        "/static/conexion.js",
         "/static/iconos/icono-192.png",
         "/static/iconos/icono-512.png",
         "/static/iconos/icono-maskable-512.png",

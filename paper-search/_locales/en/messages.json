@@ -300,12 +300,33 @@
   "nav_volver_a_buscar": {
     "message": "Back to search"
   },
+  "off_buscar_sin_conexion": {
+    "description": "Se intento buscar sin internet. Se muestra en vez de dejar el formulario cargando indefinidamente.",
+    "message": "Searching needs an internet connection: PubMed and the summariser require the network. Any favourites you have already saved are still available."
+  },
+  "off_copia_aviso": {
+    "description": "Banner sobre una pagina servida desde la cache del service worker, con el servidor apagado.",
+    "message": "You are viewing a copy saved on $fecha$. paper-search is not running, so this data may be out of date and cannot be edited.",
+    "placeholders": {
+      "fecha": {
+        "content": "$1"
+      }
+    }
+  },
   "off_reintentar": {
     "message": "Try again"
   },
   "off_servidor_caido": {
     "description": "Servidor local apagado. Distinto de no tener internet: aqui no funciona nada, ni siquiera los favoritos.",
     "message": "Could not reach paper-search on your computer. Check that it is running (double-click run.bat) and try again."
+  },
+  "off_sin_internet": {
+    "description": "Hay servidor local pero no internet. Los favoritos SI funcionan (SQLite es local); solo fallan PubMed y Claude.",
+    "message": "No internet connection. You can browse the favourites you have already saved, but not search PubMed or generate summaries."
+  },
+  "off_solo_lectura": {
+    "description": "Etiqueta en los botones deshabilitados de una pagina servida desde cache.",
+    "message": "Read only"
   },
   "off_titulo": {
     "description": "Titular de la pagina que se muestra cuando el servidor local no responde.",

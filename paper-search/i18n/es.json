@@ -81,5 +81,9 @@
   "off_titulo_pagina": "Sin conexión — paper-search",
   "off_titulo": "paper-search no está en marcha",
   "off_servidor_caido": "No se ha podido contactar con paper-search en tu ordenador. Comprueba que está arrancado (doble clic en run.bat) y vuelve a intentarlo.",
-  "off_reintentar": "Reintentar"
+  "off_reintentar": "Reintentar",
+  "off_sin_internet": "Sin conexión a internet. Puedes consultar los favoritos que ya tienes guardados, pero no buscar en PubMed ni generar resúmenes.",
+  "off_buscar_sin_conexion": "No se puede buscar sin conexión a internet: PubMed y el resumidor necesitan red. Los favoritos que ya tengas guardados sí están disponibles.",
+  "off_copia_aviso": "Estás viendo una copia guardada del $fecha$. paper-search no está en marcha, así que estos datos pueden estar desactualizados y no se pueden editar.",
+  "off_solo_lectura": "Solo lectura"
 }

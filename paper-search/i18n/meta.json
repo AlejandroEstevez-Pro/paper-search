@@ -138,5 +138,20 @@
   },
   "off_servidor_caido": {
     "descripcion": "Servidor local apagado. Distinto de no tener internet: aqui no funciona nada, ni siquiera los favoritos."
+  },
+  "off_sin_internet": {
+    "descripcion": "Hay servidor local pero no internet. Los favoritos SI funcionan (SQLite es local); solo fallan PubMed y Claude."
+  },
+  "off_buscar_sin_conexion": {
+    "descripcion": "Se intento buscar sin internet. Se muestra en vez de dejar el formulario cargando indefinidamente."
+  },
+  "off_copia_aviso": {
+    "descripcion": "Banner sobre una pagina servida desde la cache del service worker, con el servidor apagado.",
+    "placeholders": [
+      "fecha"
+    ]
+  },
+  "off_solo_lectura": {
+    "descripcion": "Etiqueta en los botones deshabilitados de una pagina servida desde cache."
   }
 }

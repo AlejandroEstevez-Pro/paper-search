@@ -45,6 +45,7 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
 )
 from paper_search.i18n import IDIOMA_REFERENCIA  # noqa: E402
 from paper_search.orden import ETIQUETAS as ETIQUETAS_ORDEN  # noqa: E402
+from paper_search.db import ahora_utc_iso  # noqa: E402
 from paper_search.pwa import RUTA_ESTADO, politica  # noqa: E402
 
 HOST = "127.0.0.1"
@@ -219,6 +220,11 @@ CLAVES_JS = (
     "fav_error_guardar",
     "fav_error_servidor",
     "fil_contador",
+    # Avisos de conexión (ver static/conexion.js).
+    "off_copia_aviso",
+    "off_sin_internet",
+    "off_buscar_sin_conexion",
+    "off_solo_lectura",
 )
 
 
@@ -243,6 +249,9 @@ def utilidades_de_plantilla():
         "idioma": idioma,
         "idiomas": IDIOMAS,
         "textos_js": {clave: t(clave) for clave in CLAVES_JS},
+        "color_tema": COLOR_TEMA,
+        "ruta_estado": RUTA_ESTADO,
+        "generado_en": ahora_utc_iso(),
         "etiquetas_orden": {
             "fecha": t("ord_fecha"),
             "relevancia": t("ord_relevancia"),

@@ -81,5 +81,9 @@
   "off_titulo_pagina": "Offline — paper-search",
   "off_titulo": "paper-search is not running",
   "off_servidor_caido": "Could not reach paper-search on your computer. Check that it is running (double-click run.bat) and try again.",
-  "off_reintentar": "Try again"
+  "off_reintentar": "Try again",
+  "off_sin_internet": "No internet connection. You can browse the favourites you have already saved, but not search PubMed or generate summaries.",
+  "off_buscar_sin_conexion": "Searching needs an internet connection: PubMed and the summariser require the network. Any favourites you have already saved are still available.",
+  "off_copia_aviso": "You are viewing a copy saved on $fecha$. paper-search is not running, so this data may be out of date and cannot be edited.",
+  "off_solo_lectura": "Read only"
 }
