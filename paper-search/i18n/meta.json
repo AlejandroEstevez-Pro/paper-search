@@ -1,0 +1,102 @@
+{
+  "_comentario": [
+    "Lo que NO depende del idioma: descripción de cada clave (contexto para",
+    "quien traduce, y campo `description` de chrome.i18n) y el orden de sus",
+    "placeholders. Vive una sola vez, no repetido en cada archivo de idioma.",
+    "El orden de `placeholders` es el que el generador convierte en $1, $2…",
+    "de chrome.i18n. Se declara explícitamente, y no se infiere del texto,",
+    "para que una traducción que reordene los placeholders no desplace el",
+    "mapeo posicional. Un test comprueba que lo declarado y lo realmente",
+    "usado en cada idioma coinciden en ambos sentidos.",
+    "Las claves sin placeholders ni descripción pueden faltar aquí."
+  ],
+
+  "err_no_entero": {
+    "descripcion": "Error de formulario cuando un campo numérico no es un entero.",
+    "placeholders": ["campo"]
+  },
+  "err_no_positivo": {
+    "descripcion": "Error de formulario cuando un campo numérico no es mayor que 0.",
+    "placeholders": ["campo"]
+  },
+  "res_sin_resultados": {
+    "descripcion": "PubMed respondió pero no devolvió ningún artículo.",
+    "placeholders": ["consulta", "dias"]
+  },
+  "res_desde_cache": {
+    "descripcion": "El resumen se sirvió de la caché local en vez de generarse ahora.",
+    "placeholders": ["fecha", "hora"]
+  },
+  "fil_contador": {
+    "descripcion": "Contador de los filtros de pantalla. Dice siempre «N de M» para dejar claro que filtrar no es buscar: no puede traer resultados nuevos.",
+    "placeholders": ["visibles", "total"]
+  },
+  "fav_titulo_lista": {
+    "descripcion": "Encabezado de la lista de favoritos, con cuántos hay.",
+    "placeholders": ["total"]
+  },
+  "fav_marcado_el": {
+    "descripcion": "Fecha en que se marcó el favorito.",
+    "placeholders": ["fecha"]
+  },
+  "fav_nota_actualizada": {
+    "descripcion": "Fecha de la última edición de la nota. Va detrás de fav_marcado_el, separado por una coma.",
+    "placeholders": ["fecha"]
+  },
+  "fav_confirmar_borrar_nota": {
+    "descripcion": "Confirmación antes de desmarcar un favorito que tiene nota escrita, mostrando la nota que se va a perder.",
+    "placeholders": ["nota"]
+  },
+  "fav_err_pmid_desconocido": {
+    "descripcion": "Se intentó marcar un PMID que no está en la tabla local de papers.",
+    "placeholders": ["pmid"]
+  },
+  "fav_err_no_marcado": {
+    "descripcion": "Se intentó anotar un paper que no está en favoritos.",
+    "placeholders": ["pmid"]
+  },
+  "fav_err_pmid_invalido": {
+    "descripcion": "El PMID recibido no es un número.",
+    "placeholders": ["pmid"]
+  },
+
+  "alc_aviso_sin_sujeto": {
+    "descripcion": "Búsqueda solo por autor: no hay término médico que clasificar, así que el guardarraíl de alcance no puede pronunciarse. Se avisa y se deja pasar."
+  },
+  "alc_aviso_ambiguo": {
+    "descripcion": "El clasificador no sitúa el término con seguridad dentro de las enfermedades raras. $motivo$ es una frase del modelo y ya termina en punto.",
+    "placeholders": ["termino", "motivo"]
+  },
+  "alc_aviso_no_concluyente": {
+    "descripcion": "La verificación de alcance no se pudo completar (fallo de API, falta de clave). Se deja pasar la búsqueda.",
+    "placeholders": ["termino", "motivo"]
+  },
+  "alc_mensaje_bloqueo": {
+    "descripcion": "Término fuera de alcance: la búsqueda se bloquea antes de tocar PubMed.",
+    "placeholders": ["termino", "motivo"]
+  },
+
+  "idi_aviso": {
+    "descripcion": "El término parece escrito en español, catalán, euskera o gallego. No se nombra la lengua concreta a propósito: el vocabulario médico se solapa entre las tres romances y acertar sería azar.",
+    "placeholders": ["termino"]
+  },
+
+  "comun_aviso_web_corto": {
+    "descripcion": "Aviso médico del banner de la web. Versión corta del que viaja en el texto exportado (comun_aviso_no_diagnostico)."
+  },
+  "comun_aviso_no_diagnostico": {
+    "descripcion": "Aviso médico completo. Viaja con el texto exportado a NotebookLM, donde ya no hay interfaz que lo recuerde."
+  },
+  "fav_boton_marcado": {
+    "descripcion": "Botón de un resultado que YA está en favoritos. En la web lleva delante una estrella llena."
+  },
+  "fav_boton_sin_marcar": {
+    "descripcion": "Botón de un resultado que NO está en favoritos. En la web lleva delante una estrella vacía."
+  },
+  "err_campo_max": {
+    "descripcion": "Nombre del campo «máximo de resultados», usado dentro de err_no_entero y err_no_positivo."
+  },
+  "err_campo_dias": {
+    "descripcion": "Nombre del campo «ventana en días», usado dentro de err_no_entero y err_no_positivo."
+  }
+}

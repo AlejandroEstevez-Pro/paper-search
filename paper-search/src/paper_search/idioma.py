@@ -27,6 +27,8 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
+from .i18n import IDIOMA_REFERENCIA, traducir
+
 ESPANOL = "es"
 CATALAN = "ca"
 EUSKERA = "eu"
@@ -215,26 +217,24 @@ class ResultadoIdioma:
     def avisa(self) -> bool:
         return bool(self.lenguas)
 
-    def aviso(self, termino: str) -> str | None:
-        """Texto para CLI y web, o `None` si el término no necesita aviso."""
+    def aviso(self, termino: str, idioma: str = IDIOMA_REFERENCIA) -> str | None:
+        """Texto para CLI y web, o `None` si el término no necesita aviso.
+
+        No se nombra la lengua concreta a propósito, aunque `lenguas` la
+        traiga. Buena parte del vocabulario médico se escribe igual en las
+        tres lenguas romances («síndrome de Dravet», «distrofia muscular»),
+        así que nombrar una sería acertar por azar; y decirle «parece estar
+        en español» a quien escribió en euskera es un error que se ve. El
+        consejo —reescribir en inglés— es el mismo en los cuatro casos.
+        """
         if not self.avisa:
             return None
-        # No se nombra la lengua concreta a propósito, aunque `lenguas` la
-        # traiga. Buena parte del vocabulario médico se escribe igual en las
-        # tres lenguas romances («síndrome de Dravet», «distrofia muscular»),
-        # así que nombrar una sería acertar por azar; y decirle «parece estar
-        # en español» a quien escribió en euskera es un error que se ve. El
-        # consejo —reescribir en inglés— es el mismo en los cuatro casos.
-        return (
-            f"El término «{termino}» parece estar escrito en español o en una "
-            f"lengua cooficial (catalán, euskera o gallego). PubMed indexa "
-            f"sobre todo artículos en inglés, así que es probable que "
-            f"encuentres bastantes menos resultados de los que hay: prueba a "
-            f"reescribirlo en inglés (por ejemplo «Dravet syndrome» en vez de "
-            f"«síndrome de Dravet», o el nombre del gen, que se escribe igual "
-            f"en todos los idiomas). La búsqueda se ha ejecutado igualmente "
-            f"con el término tal cual."
-        )
+        return traducir("idi_aviso", idioma, termino=termino)
+
+
+def aviso_de_idioma(termino: str, idioma: str = IDIOMA_REFERENCIA) -> str | None:
+    """Atajo: el texto del aviso para `termino`, o `None` si no hace falta."""
+    return detectar_idioma(termino).aviso(termino, idioma)
 
 
 def detectar_idioma(termino: str) -> ResultadoIdioma:
@@ -292,8 +292,3 @@ def detectar_idioma(termino: str) -> ResultadoIdioma:
     return ResultadoIdioma(
         lenguas=tuple(sorted(lenguas)), evidencia=tuple(evidencia)
     )
-
-
-def aviso_de_idioma(termino: str) -> str | None:
-    """Atajo: el texto del aviso para `termino`, o `None` si no hace falta."""
-    return detectar_idioma(termino).aviso(termino)

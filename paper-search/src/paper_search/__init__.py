@@ -35,6 +35,7 @@ from .config import RUTA_ENV, cargar_env
 from .db import BaseDatosError, abrir_db, ruta_db_por_defecto
 from .exportar import texto_para_notebooklm
 from .favoritos import Favorito, FavoritoError, Favoritos
+from .i18n import IDIOMA_REFERENCIA, IDIOMAS, normalizar_idioma, traducir
 from .idioma import ResultadoIdioma, aviso_de_idioma, detectar_idioma
 from .limites import LimiteAlcanzadoError, LimitesUso
 from .orden import (
@@ -98,6 +99,8 @@ __all__ = [
     "Favoritos",
     "LimiteAlcanzadoError",
     "LimitesUso",
+    "IDIOMAS",
+    "IDIOMA_REFERENCIA",
     "MENSAJE_FALTA_API_KEY",
     "ORDENES",
     "ORDEN_FECHA",
@@ -130,6 +133,7 @@ __all__ = [
     "construir_consulta",
     "detectar_idioma",
     "filtrar_papers",
+    "normalizar_idioma",
     "normalizar_orden",
     "ordenar_papers",
     "plegar_texto",
@@ -138,6 +142,7 @@ __all__ = [
     "segmentar_resumen",
     "sujeto_de_alcance",
     "texto_para_notebooklm",
+    "traducir",
     "url_de_pmid",
 ]
 
@@ -155,6 +160,7 @@ def buscar_y_resumir(
     max_resultados: int = MAX_RESULTADOS_POR_DEFECTO,
     dias: int = DIAS_POR_DEFECTO,
     orden: str = ORDEN_POR_DEFECTO,
+    idioma: str = IDIOMA_REFERENCIA,
     resumir: bool = True,
     verificar_alcance: bool = True,
     verificar_resumen: bool = True,
@@ -256,7 +262,7 @@ def buscar_y_resumir(
     # guardarraíl de alcance está desactivado. Solo informa: ni traduce el
     # término ni bloquea la búsqueda. Se mira el sujeto médico y no el autor:
     # un apellido no está "escrito en" ningún idioma.
-    aviso_idioma = aviso_de_idioma(sujeto) if sujeto else None
+    aviso_idioma = aviso_de_idioma(sujeto, idioma) if sujeto else None
 
     aviso_alcance: str | None = None
     if verificar_alcance:
@@ -279,8 +285,8 @@ def buscar_y_resumir(
 
         if veredicto.bloquea:
             _registrar(RESULTADO_BLOQUEADA_ALCANCE, detalle=veredicto.motivo)
-            raise TerminoFueraDeAlcanceError(veredicto.mensaje_bloqueo(sujeto))
-        aviso_alcance = veredicto.aviso(sujeto)
+            raise TerminoFueraDeAlcanceError(veredicto.mensaje_bloqueo(sujeto, idioma))
+        aviso_alcance = veredicto.aviso(sujeto, idioma)
 
     client = client or PubMedClient()
     try:

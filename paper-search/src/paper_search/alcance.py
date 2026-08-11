@@ -24,6 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from .i18n import IDIOMA_REFERENCIA, traducir
 from .models import PaperSearchError
 from .summarizer import MODELO_POR_DEFECTO, FaltaAPIKeyError, _crear_client
 
@@ -98,41 +99,31 @@ class VeredictoAlcance:
     def bloquea(self) -> bool:
         return self.veredicto == FUERA_DE_ALCANCE
 
-    def aviso(self, termino: str) -> str | None:
-        """Texto de aviso para CLI/web, o `None` si no hace falta avisar."""
+    def aviso(self, termino: str, idioma: str = IDIOMA_REFERENCIA) -> str | None:
+        """Texto de aviso para CLI/web, o `None` si no hace falta avisar.
+
+        El texto vive en `i18n/<idioma>.json`, no aquí: es el mismo que usa la
+        extensión de Chrome. `idioma` por defecto es el de referencia, así que
+        la CLI —que no pasa idioma— imprime exactamente lo de siempre.
+        """
         if self.veredicto == NO_CONCLUYENTE and self.motivo == MOTIVO_SIN_SUJETO:
             # Búsqueda solo por autor: no hay término de enfermedad que citar
             # en el mensaje, así que se explica la situación en vez de dejar
             # unas comillas vacías.
-            return (
-                "Esta búsqueda no incluye ningún término de enfermedad ni "
-                "patógeno —solo filtros como el autor—, así que no se ha "
-                "podido comprobar si está dentro del alcance de la herramienta "
-                "(enfermedades raras). Los resultados pueden incluir trabajos "
-                "ajenos a este ámbito. La búsqueda se ha ejecutado igualmente."
-            )
+            return traducir("alc_aviso_sin_sujeto", idioma)
         if self.veredicto == AMBIGUO:
-            return (
-                f"El término «{termino}» no se ha podido clasificar con "
-                f"seguridad dentro del alcance de la herramienta (enfermedades "
-                f"raras): {self.motivo} La búsqueda se ha ejecutado "
-                f"igualmente; interpreta los resultados con cautela."
+            return traducir(
+                "alc_aviso_ambiguo", idioma, termino=termino, motivo=self.motivo
             )
         if self.veredicto == NO_CONCLUYENTE:
-            return (
-                f"No se ha podido comprobar si «{termino}» está dentro del "
-                f"alcance de la herramienta (enfermedades raras): "
-                f"{self.motivo}. La búsqueda se ha ejecutado igualmente."
+            return traducir(
+                "alc_aviso_no_concluyente", idioma, termino=termino, motivo=self.motivo
             )
         return None
 
-    def mensaje_bloqueo(self, termino: str) -> str:
-        return (
-            f"El término «{termino}» está fuera del alcance de esta "
-            f"herramienta, que se limita a genes y síndromes relacionados con "
-            f"enfermedades raras. Motivo: {self.motivo}\n"
-            f"No se ha lanzado ninguna búsqueda en PubMed. Prueba con un gen "
-            f"(p. ej. SCN1A) o un síndrome raro (p. ej. síndrome de Dravet)."
+    def mensaje_bloqueo(self, termino: str, idioma: str = IDIOMA_REFERENCIA) -> str:
+        return traducir(
+            "alc_mensaje_bloqueo", idioma, termino=termino, motivo=self.motivo
         )
 
 

@@ -368,3 +368,47 @@ NotebookLM pierde todo el contexto de dónde salió, la trazabilidad es la regla
 proyecto, y separado de esta interfaz nada recordaría que no es asesoramiento médico. En
 cambio NO incluye metadatos de caché: dos exportaciones del mismo resumen deben coincidir
 byte a byte venga de donde venga, y hay un test que lo fija.
+
+2026-08-11 — [paper-search] Fase 5.1, i18n: fuente única en `paper-search/i18n/<idioma>.json`
+(clave → texto plano) más `i18n/meta.json` con lo que no depende del idioma (descripción y
+orden de placeholders). De ahí salen la web y los `_locales/<idioma>/messages.json` de
+chrome.i18n: un solo diccionario, dos formatos. Se descarta Babel/Flask-Babel porque añadiría
+una dependencia y un flujo `.po/.mo`, y convertir gettext a `messages.json` es más trabajo que
+JSON a JSON; el módulo propio son ~60 líneas sin dependencias.
+
+2026-08-11 — [paper-search] Las claves van en `snake_case` con prefijo de área
+(`form_boton_buscar`) y NO con puntos (`form.boton_buscar`). Motivo medido, no estético:
+chrome.i18n solo admite letras, números y `_` en los nombres de mensaje. Con puntos, el
+generador tendría que transformar las claves y `a.b_c` y `a_b.c` colisionarían en `a_b_c` sin
+avisar. Con snake_case la clave viaja idéntica a los dos formatos, con cero transformación. Un
+test valida el patrón y la ausencia del prefijo reservado `@@`.
+
+2026-08-11 — [paper-search] Los placeholders se escriben `$nombre$` y no `{nombre}`: es la
+sintaxis nativa de chrome.i18n, así que el generador copia el `message` LITERAL de la fuente.
+Con `{}` habría que convertir, y una llave literal dentro de un texto se corrompería en
+silencio. El orden posicional ($1, $2…) sale de `meta.json`, declarado, no del orden de
+aparición en el texto: así una traducción que reordene los placeholders no desplaza el mapeo.
+Tests en ambos sentidos comprueban que lo declarado y lo usado coinciden, y que las dos
+lenguas usan los mismos placeholders por clave.
+
+2026-08-11 — [paper-search] Los avisos de alcance e idioma, que se construyen dentro del
+paquete y no en las plantillas, TAMBIÉN pasan por i18n: `aviso(termino, idioma="es")`,
+`mensaje_bloqueo(...)`, `Favoritos(conn, idioma=...)` y `buscar_y_resumir(..., idioma=...)`.
+Con el idioma por defecto en el de referencia, la salida de la CLI no cambia ni un byte
+(verificado por los 145 tests de alcance e idioma, que no se tocaron) y no hay diccionario
+duplicado. La alternativa —dejar esos textos fijos en español— habría dado una web en inglés
+con los avisos en español y los habría dejado fuera de la extensión de Chrome.
+
+2026-08-11 — [paper-search] Fallback de traducción: idioma pedido → idioma de referencia (`es`)
+→ la propia clave. Nunca lanza. Devolver la clave (`form_boton_buscar` en pantalla) es
+deliberado: señala exactamente qué falta y dónde, mientras que un texto vacío pasaría
+desapercibido. Lo mismo con un placeholder sin valor: se deja visible (`$termino$`) en vez de
+sustituirlo por vacío. Hay tests que piden la página real con una fuente incompleta y con la
+fuente entera vacía, y comprueban que en ambos casos se sirve un 200.
+
+2026-08-11 — [paper-search] La CLI queda FUERA de la fase de i18n. Sus textos de `argparse`
+son otra superficie, no sirven a la extensión de Chrome, y con `idioma="es"` por defecto su
+salida es idéntica a la de antes. Fuera de alcance también, y anotado como deuda: los mensajes
+técnicos de fallo de `summarizer.py`, `verificacion.py` y `pubmed_client.py`, que siguen en
+español fijo. Se cubrió lo que ve el usuario en la web (interfaz, errores de formulario,
+avisos y errores de favoritos).

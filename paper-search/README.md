@@ -233,6 +233,44 @@ a un archivo:
 python cli.py buscar "SCN1A" > scn1a.txt
 ```
 
+## Idiomas
+
+La web está en español e inglés. Se cambia con el conmutador de la cabecera
+(`?idioma=en`) y la elección se recuerda en una cookie, así que sobrevive a las
+búsquedas (que son POST) y a la vista de favoritos (que redirige).
+
+Todos los textos viven en **una sola fuente**, `paper-search/i18n/`:
+
+```
+i18n/
+├── es.json      # idioma de referencia: el único que tiene que estar completo
+├── en.json      # traducción
+└── meta.json    # descripción y orden de placeholders (no depende del idioma)
+```
+
+Los archivos por idioma son `clave: "texto"` plano, con placeholders `$nombre$`:
+
+```json
+{
+  "form_boton_buscar": "Buscar",
+  "fil_contador": "$visibles$ de $total$ resultados mostrados"
+}
+```
+
+**Para traducir o corregir un texto** basta con editar el JSON del idioma: no
+hay que tocar plantillas ni código. Para **añadir un idioma**, se copia
+`es.json`, se traduce, y se añade el código a `IDIOMAS` en
+`src/paper_search/i18n.py`.
+
+Si una clave falta en un idioma se usa la del idioma de referencia, y si no
+está en ninguno se muestra la propia clave (`form_boton_buscar`), que señala
+qué falta y dónde. Una traducción a medias degrada el texto; nunca rompe la
+página.
+
+Las claves van en `snake_case` con prefijo de área (`form_`, `res_`, `fav_`,
+`alc_`…) y sin puntos: es lo único que admite `chrome.i18n`, y así la misma
+clave sirve para la web y para la extensión sin transformarla.
+
 ## Caché, límites y registro locales
 
 Todo vive en un único archivo SQLite, por defecto
@@ -384,6 +422,7 @@ paper-search/
 │   ├── orden.py                  # ordenación por fecha o relevancia
 │   ├── favoritos.py              # papers marcados y sus notas
 │   ├── exportar.py               # texto plano para pegar en NotebookLM
+│   ├── i18n.py                   # traducción: cargador, traducir(), fallback
 │   ├── summarizer.py             # resumen en lenguaje llano
 │   ├── verificacion.py           # verificación del resumen + reintentos
 │   ├── db.py                     # SQLite local: conexión, esquema, migraciones

@@ -24,6 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from .db import ahora_utc_iso
+from .i18n import IDIOMA_REFERENCIA, traducir
 from .models import Paper, PaperSearchError
 
 
@@ -73,9 +74,13 @@ class Favoritos:
         conn: sqlite3.Connection,
         *,
         ahora: Callable[[], str] = ahora_utc_iso,
+        idioma: str = IDIOMA_REFERENCIA,
     ) -> None:
         self.conn = conn
         self._ahora = ahora
+        # Idioma de los mensajes de error de cara al usuario. Por defecto el de
+        # referencia, así que la CLI no cambia; la web pasa el idioma activo.
+        self.idioma = idioma
 
     # ------------------------------------------------------------- consultas
 
@@ -125,7 +130,7 @@ class Favoritos:
         Lanza `FavoritoError` si el PMID no está en `papers`, es decir, si no
         ha salido en ninguna búsqueda previa.
         """
-        pmid = _exigir_pmid(pmid)
+        pmid = _exigir_pmid(pmid, self.idioma)
         ahora = self._ahora()
         nota_limpia = _limpiar_nota(nota)
         try:
@@ -142,10 +147,7 @@ class Favoritos:
                 )
         except sqlite3.IntegrityError as exc:
             raise FavoritoError(
-                f"El PMID {pmid} no está en la base de datos local, así que no "
-                f"se puede marcar como favorito. Solo se pueden marcar papers "
-                f"que hayan aparecido en alguna búsqueda previa: busca primero "
-                f"el término que lo devuelve y márcalo desde ahí."
+                traducir("fav_err_pmid_desconocido", self.idioma, pmid=pmid)
             ) from exc
 
         favorito = self.obtener(pmid)
@@ -155,7 +157,7 @@ class Favoritos:
 
     def desmarcar(self, pmid: str) -> bool:
         """Quita el favorito (y su nota). Devuelve si había algo que quitar."""
-        pmid = _exigir_pmid(pmid)
+        pmid = _exigir_pmid(pmid, self.idioma)
         with self.conn:
             cursor = self.conn.execute("DELETE FROM favoritos WHERE pmid = ?", (pmid,))
         return cursor.rowcount > 0
@@ -167,7 +169,7 @@ class Favoritos:
         no está marcado: anotar no marca por su cuenta, para que no se creen
         favoritos por escribir una nota de más.
         """
-        pmid = _exigir_pmid(pmid)
+        pmid = _exigir_pmid(pmid, self.idioma)
         with self.conn:
             cursor = self.conn.execute(
                 "UPDATE favoritos SET nota = ?, actualizado_en = ? WHERE pmid = ?",
@@ -175,8 +177,7 @@ class Favoritos:
             )
         if cursor.rowcount == 0:
             raise FavoritoError(
-                f"El PMID {pmid} no está en favoritos, así que no se le puede "
-                f"añadir una nota. Márcalo primero como favorito."
+                traducir("fav_err_no_marcado", self.idioma, pmid=pmid)
             )
         favorito = self.obtener(pmid)
         if favorito is None:  # pragma: no cover - imposible tras el UPDATE
@@ -184,14 +185,12 @@ class Favoritos:
         return favorito
 
 
-def _exigir_pmid(pmid: str) -> str:
+def _exigir_pmid(pmid: str, idioma: str = IDIOMA_REFERENCIA) -> str:
     limpio = str(pmid or "").strip()
     if not limpio:
-        raise FavoritoError("Hace falta un PMID.")
+        raise FavoritoError(traducir("fav_err_pmid_vacio", idioma))
     if not limpio.isdigit():
-        raise FavoritoError(
-            f"«{limpio}» no parece un PMID: un PMID es un número, como 38123456."
-        )
+        raise FavoritoError(traducir("fav_err_pmid_invalido", idioma, pmid=limpio))
     return limpio
 
 
