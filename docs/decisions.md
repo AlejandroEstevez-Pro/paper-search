@@ -502,3 +502,29 @@ serializan todos en vez de resolverse en el servidor.
 con Pillow sobre los colores del CSS. Pillow se usó una sola vez para generarlos y los PNG
 están commiteados, así que NO entra en requirements.txt. Hay que sustituirlos por un icono de
 verdad antes de que esto se enseñe a nadie.
+  → RESUELTO el 2026-08-17: sustituidos por el icono real (ver más abajo).
+
+2026-08-17 — [paper-search] Icono definitivo, importado del proyecto de Claude Design
+`Icon.dc.html`: una lupa de trazo grueso en oro con una cruz médica maciza dentro de la lente,
+sobre near-black. Sustituye al placeholder de la Fase 5.2. Usa los tokens de marca del sistema
+(`--color-text #201f1d`, `--color-accent #b68235`, `--color-bg #f3f2f2`) y no tonos sueltos de
+la rampa como hacía el placeholder (#2d2b2b, #facb8d), así que ahora el icono y la interfaz
+son el mismo sistema. Del diseño original: la cruz se eligió sobre la vara de Asclepio porque
+sus curvas no sobreviven a 16 px.
+
+2026-08-17 — [paper-search] El SVG es la fuente del icono y los PNG son derivados:
+`herramientas/generar_iconos.py` **parsea** el SVG y lo rasteriza, en vez de reimplementar la
+geometría a mano, para que no puedan quedar desalineados por una copia que se olvidó de
+actualizar. El renderizador solo entiende los primitivos que usa este icono (rect con esquinas
+opcionales, círculo con trazo, línea con trazo y cabeza redonda) y **falla ante cualquier
+otro** en vez de dibujar de menos en silencio — un icono al que le falte un trazo llegaría
+hasta la barra de tareas sin que nadie lo notase. Hay un `--comprobar` y un test que fallan si
+alguien retoca el SVG y no regenera. Pillow sigue usándose solo para generar, no en tiempo de
+ejecución, así que no entra en requirements.txt.
+
+2026-08-17 — [paper-search] La variante `maskable` se genera a sangre (sin las esquinas
+redondeadas del SVG) porque el sistema operativo le aplica su propia máscara: dejar las
+esquinas redondas haría que se recortara dos veces y quedara mordida. Que el dibujo quepa
+dentro de la máscara circular no se da por supuesto: un test rasteriza el icono y mide el
+punto dibujado más lejano del centro (184 de un radio seguro de 205, ~10 % de holgura), que
+confirma empíricamente lo que declaraba el diseño.

@@ -301,9 +301,22 @@ barra de direcciones ni pestañas, y con su icono en la barra de tareas. En
 Chrome o Edge, con paper-search en marcha, aparece el icono de instalar en la
 barra de direcciones.
 
-> Los iconos actuales (`static/iconos/`) son un **placeholder**: una lupa
-> generada a partir de los colores del CSS. Hay que sustituirlos por un icono
-> de verdad.
+El icono es una lupa de trazo grueso en oro con una cruz médica maciza dentro
+de la lente, sobre near-black. Usa los tokens del sistema de diseño
+(`--color-text`, `--color-accent`, `--color-bg`), así que no desentona con el
+resto de la interfaz.
+
+La fuente es `static/iconos/paper-search-icon.svg`; los PNG que pide el
+manifest se derivan de él:
+
+```bash
+python herramientas/generar_iconos.py
+python herramientas/generar_iconos.py --comprobar   # ¿están al día?
+```
+
+Hay además una variante `-transparent.svg` para fondos claros. Si se retoca el
+icono, se retoca el SVG y se regenera: un test falla si los PNG se quedan
+atrás.
 
 ### Qué funciona sin conexión y qué no
 
