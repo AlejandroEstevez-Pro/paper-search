@@ -90,6 +90,8 @@ def recursos_a_precachear() -> tuple[str, ...]:
         # formularios: sin precachearlo, la página servida desde caché se
         # vería normal y editable, que es justo lo que hay que evitar.
         "/static/conexion.js",
+        # El SVG es el favicon: una sola copia sirve para todos los tamaños.
+        "/static/iconos/paper-search-icon.svg",
         "/static/iconos/icono-192.png",
         "/static/iconos/icono-512.png",
         "/static/iconos/icono-maskable-512.png",

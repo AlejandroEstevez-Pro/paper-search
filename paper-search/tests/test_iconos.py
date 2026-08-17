@@ -184,6 +184,35 @@ def test_el_trazo_sobrevive_a_tamano_favicon(tmp_path):
     assert len(dorados) >= 15, f"solo {len(dorados)} píxeles de lupa a 16 px"
 
 
+# --------------------------------------------- coherencia con la app instalada
+
+
+def test_el_color_de_tema_es_el_fondo_del_icono(cliente):
+    """La pantalla de arranque usa `background_color` detrás del icono: si no
+    coinciden, al abrir la app instalada se ve un escalón de color."""
+    manifest = cliente.get("/manifest.json").get_json()
+    fondo_del_svg = re.search(r'<rect[^>]*fill="(#[0-9a-f]{6})"', SVG.read_text(encoding="utf-8"))
+
+    assert fondo_del_svg.group(1) == NEGRO
+    assert manifest["background_color"] == NEGRO
+    assert manifest["theme_color"] == NEGRO
+
+
+def test_el_favicon_es_el_svg_con_el_png_de_reserva(cliente):
+    """Un SVG sirve nítido a cualquier tamaño; el PNG cubre a quien no lo admita."""
+    cuerpo = cliente.get("/").get_data(as_text=True)
+
+    assert 'rel="icon" type="image/svg+xml"' in cuerpo
+    assert "paper-search-icon.svg" in cuerpo
+    assert 'rel="icon" type="image/png"' in cuerpo
+
+
+def test_el_svg_del_favicon_se_sirve_con_su_tipo(cliente):
+    respuesta = cliente.get("/static/iconos/paper-search-icon.svg")
+
+    assert respuesta.status_code == 200
+    assert "svg" in respuesta.headers["Content-Type"]
+
 
 def test_ya_no_queda_ningun_icono_placeholder():
     """Los placeholders usaban tonos de la rampa (#2d2b2b, #facb8d) en vez de

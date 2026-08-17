@@ -528,3 +528,13 @@ esquinas redondas haría que se recortara dos veces y quedara mordida. Que el di
 dentro de la máscara circular no se da por supuesto: un test rasteriza el icono y mide el
 punto dibujado más lejano del centro (184 de un radio seguro de 205, ~10 % de holgura), que
 confirma empíricamente lo que declaraba el diseño.
+
+2026-08-17 — [paper-search] `theme_color` y `background_color` del manifest pasan de #2d2b2b a
+#201f1d, el mismo near-black del fondo del icono. La pantalla de arranque de la app instalada
+pinta `background_color` detrás del icono: si no coinciden, al abrir se ve un escalón de
+color. Hay un test que lee el fill del rectángulo de fondo del SVG y lo compara con el
+manifest, para que no vuelvan a separarse.
+
+2026-08-17 — [paper-search] El favicon pasa a ser el SVG (`rel="icon" type="image/svg+xml"`)
+con el PNG de 192 como reserva, en vez de servir un PNG de 192 px para un hueco de 16. El SVG
+entra en el precache del service worker porque ahora lo referencian todas las páginas.

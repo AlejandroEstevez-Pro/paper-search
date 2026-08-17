@@ -97,9 +97,11 @@ def recordar_idioma(respuesta):
 
 
 #: Color de la barra de título de la ventana instalada y del fondo de arranque.
-#: Salen del CSS existente para que la ventana no desentone (#2d2b2b / #facb8d).
-COLOR_TEMA = "#2d2b2b"
-COLOR_FONDO = "#2d2b2b"
+#: Es el mismo near-black del fondo del icono (`--color-text` del sistema de
+#: diseño), para que la pantalla de arranque y el icono no hagan un escalón de
+#: color al abrir la app instalada.
+COLOR_TEMA = "#201f1d"
+COLOR_FONDO = "#201f1d"
 
 
 @app.get("/manifest.json")
