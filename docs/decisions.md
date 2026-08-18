@@ -538,3 +538,22 @@ manifest, para que no vuelvan a separarse.
 2026-08-17 — [paper-search] El favicon pasa a ser el SVG (`rel="icon" type="image/svg+xml"`)
 con el PNG de 192 como reserva, en vez de servir un PNG de 192 px para un hueco de 16. El SVG
 entra en el precache del service worker porque ahora lo referencian todas las páginas.
+
+2026-08-18 — [paper-search] `GET /` acepta ahora `?termino=` para llegar con el formulario
+relleno, y `?buscar=1` para que la página lo envíe sola. Lo va a usar la extensión de Chrome.
+La búsqueda de verdad sigue siendo el POST a `/buscar`, y eso es deliberado: un GET que
+buscara gastaría cuota diaria y llamadas a Claude reales, y quedaría al alcance de una
+precarga del navegador, de un marcador sincronizado o de una revisita del historial. La URL
+que sí se abre solo pinta un formulario: es inofensiva por muchas veces que se cargue.
+
+2026-08-18 — [repo] Los `_locales/` pasan a generarse en `extension/_locales/`, que es donde
+Chrome exige encontrarlos —dentro del paquete de la extensión—, y se borra la copia de
+`paper-search/_locales/`, que no consumía nadie. Una sola copia a propósito: dos habrían
+divergido, que es justo lo que el generador existe para evitar. La fuente no se mueve; lo que
+cambia es el destino por defecto, y `--salida` sigue permitiendo escribir en otro sitio.
+
+2026-08-18 — [repo] `generar_iconos.py` emite también los tamaños 16/48/128 que pide una
+extensión de Chrome, desde el mismo SVG que la web. Las salidas pasan a darse relativas a la
+raíz del repo y no a `paper-search/`, porque el icono es un activo de MARCA compartido por los
+dos componentes y la extensión necesita sus PNG dentro de su propia carpeta. El `--comprobar`
+cubre ahora los seis.

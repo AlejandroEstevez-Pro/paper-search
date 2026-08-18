@@ -265,9 +265,22 @@ def utilidades_de_plantilla():
 
 @app.get("/")
 def inicio() -> str:
+    """Portada. Acepta `?termino=` para llegar con el formulario relleno.
+
+    Lo usa la extensión de Chrome: al buscar desde el menú contextual abre esta
+    URL con el término seleccionado. Con `?buscar=1` la página además envía el
+    formulario sola (ver `index.html`), así que basta un clic.
+
+    La búsqueda de verdad sigue siendo el POST a `/buscar`, y eso es
+    deliberado: un GET que buscara gastaría cuota diaria y llamadas a Claude
+    reales, y quedaría al alcance de una precarga del navegador, de un marcador
+    o de una revisita del historial. Esta URL, en cambio, solo pinta un
+    formulario: es inofensiva por muchas veces que se cargue.
+    """
     return render_template(
         "index.html",
-        termino="",
+        termino=(request.args.get("termino") or "").strip(),
+        autobuscar=request.args.get("buscar") == "1",
         max_resultados=MAX_RESULTADOS_POR_DEFECTO,
         dias=DIAS_POR_DEFECTO,
     )

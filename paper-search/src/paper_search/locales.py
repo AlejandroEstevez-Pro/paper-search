@@ -27,8 +27,8 @@ reordene los placeholders siga apuntando al argumento correcto.
 
 Uso desde la línea de comandos:
 
-    python herramientas/generar_locales.py            # a paper-search/_locales/
-    python herramientas/generar_locales.py --salida ../chrome-extension/_locales
+    python herramientas/generar_locales.py            # a extension/_locales/
+    python herramientas/generar_locales.py --salida /otra/ruta/_locales
     python herramientas/generar_locales.py --comprobar   # ¿está al día?
 """
 
@@ -48,9 +48,12 @@ from .i18n import (
     placeholders_de,
 )
 
-#: Destino por defecto. La extensión de la Fase 5.3 puede apuntar aquí o pedir
-#: otra ruta con `--salida`: la fuente no se mueve por eso.
-RUTA_LOCALES_POR_DEFECTO = RAIZ_COMPONENTE / "_locales"
+#: Destino por defecto: la carpeta de la extensión de Chrome. Chrome exige que
+#: `_locales/` viva DENTRO del paquete de la extensión, así que ahí es donde
+#: tiene que acabar lo generado. Se deja una sola copia a propósito: dos —una
+#: en paper-search y otra en la extensión— acabarían divergiendo. Con `--salida`
+#: se puede escribir en otro sitio sin mover la fuente.
+RUTA_LOCALES_POR_DEFECTO = RAIZ_COMPONENTE.parent / "extension" / "_locales"
 
 
 class GeneracionError(Exception):

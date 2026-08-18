@@ -259,6 +259,15 @@
   // La búsqueda es una petición POST síncrona y puede tardar: se enseña el
   // estado "buscando", se oculta el resultado anterior para no dar la impresión
   // de que ya está, y se bloquea el botón para no lanzar dos a la vez.
+  // La extensión de Chrome abre `/?termino=X&buscar=1`. La búsqueda se lanza
+  // desde aquí, no con un GET, para que siga siendo un POST: así una precarga
+  // o una revisita del historial de esa URL no gasta cuota ni llamadas.
+  {% if autobuscar and termino %}
+  window.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('formulario').requestSubmit();
+  });
+  {% endif %}
+
   document.getElementById('formulario').addEventListener('submit', function () {
     document.getElementById('buscando').classList.add('is-visible');
     document.getElementById('resultado').style.display = 'none';

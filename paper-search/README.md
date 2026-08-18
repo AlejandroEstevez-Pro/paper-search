@@ -278,13 +278,12 @@ propio de `chrome.i18n`. Se generan desde la misma fuente, sin mantener un
 segundo diccionario:
 
 ```bash
-python herramientas/generar_locales.py
-python herramientas/generar_locales.py --salida ../chrome-extension/_locales
+python herramientas/generar_locales.py            # a extension/_locales/
 python herramientas/generar_locales.py --comprobar   # ¿está al día?
 ```
 
-Sale `_locales/<idioma>/messages.json`. El `manifest.json` de la extensión
-tendrá que declarar `"default_locale": "es"`.
+Sale `extension/_locales/<idioma>/messages.json`, que es donde Chrome exige
+encontrarlos: dentro del paquete de la extensión. Ver `extension/README.md`.
 
 Después de editar `i18n/*.json`, hay que regenerar: un test
 (`test_los_locales_del_repo_estan_al_dia`) falla si se olvida.

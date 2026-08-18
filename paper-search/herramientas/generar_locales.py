@@ -4,17 +4,17 @@ Toma la misma fuente de traducción que usa la web (`i18n/<idioma>.json`), así
 que no hay dos diccionarios que mantener: se edita el JSON de siempre y se
 vuelve a ejecutar esto.
 
-    python herramientas/generar_locales.py
-    python herramientas/generar_locales.py --salida ../chrome-extension/_locales
+    python herramientas/generar_locales.py            # a extension/_locales/
+    python herramientas/generar_locales.py --salida /otra/ruta/_locales
     python herramientas/generar_locales.py --comprobar
 
 `--comprobar` no escribe nada: sale con código 1 si lo generado no coincide con
 la fuente, para poder enterarse de que alguien tocó las traducciones y no
 regeneró.
 
-Recordatorio para la Fase 5.3: si la extensión trae `_locales/`, su
-`manifest.json` tiene que declarar `"default_locale"`, y el valor que
-corresponde aquí es el idioma de referencia (`es`).
+La salida va a `extension/_locales/`, que es donde Chrome exige encontrarla:
+dentro del paquete de la extensión. Su `manifest.json` declara
+`"default_locale": "es"`, el idioma de referencia.
 """
 
 from __future__ import annotations

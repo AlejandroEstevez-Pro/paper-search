@@ -25,6 +25,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
+#: El icono es un activo de MARCA, compartido por la web y por la extensión de
+#: Chrome, así que las salidas se dan relativas a la raíz del repo y no a
+#: paper-search: la extensión necesita sus PNG dentro de su propia carpeta.
+RAIZ_REPO = RAIZ.parent
 CARPETA = RAIZ / "static" / "iconos"
 SVG = CARPETA / "paper-search-icon.svg"
 
@@ -37,9 +41,16 @@ SUPERMUESTREO = 4
 #: porque el sistema operativo le aplica su propia máscara: dejar las esquinas
 #: redondas del SVG haría que se recortasen dos veces.
 SALIDAS = (
-    ("icono-192.png", 192, True),
-    ("icono-512.png", 512, True),
-    ("icono-maskable-512.png", 512, False),
+    # Web (PWA).
+    ("paper-search/static/iconos/icono-192.png", 192, True),
+    ("paper-search/static/iconos/icono-512.png", 512, True),
+    ("paper-search/static/iconos/icono-maskable-512.png", 512, False),
+    # Extensión de Chrome: 16 para la barra y el menú contextual, 48 para la
+    # página de extensiones, 128 para la Chrome Web Store. Los tres tamaños que
+    # pide la documentación de MV3.
+    ("extension/iconos/icono-16.png", 16, True),
+    ("extension/iconos/icono-48.png", 48, True),
+    ("extension/iconos/icono-128.png", 128, True),
 )
 
 
@@ -137,8 +148,9 @@ def dibujar(destino, lado: int, esquinas_redondeadas: bool):
 
 def generar() -> list[Path]:
     escritos = []
-    for nombre, lado, redondeadas in SALIDAS:
-        destino = CARPETA / nombre
+    for relativa, lado, redondeadas in SALIDAS:
+        destino = RAIZ_REPO / relativa
+        destino.parent.mkdir(parents=True, exist_ok=True)
         dibujar(destino, lado, redondeadas)
         escritos.append(destino)
     return escritos
@@ -158,12 +170,12 @@ def main(argv=None) -> int:
 
         desfasados = []
         with tempfile.TemporaryDirectory() as tmp:
-            for nombre, lado, redondeadas in SALIDAS:
-                esperado = Path(tmp) / nombre
+            for relativa, lado, redondeadas in SALIDAS:
+                esperado = Path(tmp) / Path(relativa).name
                 dibujar(esperado, lado, redondeadas)
-                actual = CARPETA / nombre
+                actual = RAIZ_REPO / relativa
                 if not actual.is_file() or actual.read_bytes() != esperado.read_bytes():
-                    desfasados.append(nombre)
+                    desfasados.append(relativa)
         if desfasados:
             print(
                 "Estos PNG no coinciden con el SVG: " + ", ".join(desfasados)
@@ -171,11 +183,11 @@ def main(argv=None) -> int:
                 file=sys.stderr,
             )
             return 1
-        print("Al día: " + ", ".join(n for n, _, _ in SALIDAS))
+        print("Al día: %d iconos" % len(SALIDAS))
         return 0
 
     for ruta in generar():
-        print(f"escrito {ruta.relative_to(RAIZ)}")
+        print(f"escrito {ruta.relative_to(RAIZ_REPO)}")
     return 0
 
 
