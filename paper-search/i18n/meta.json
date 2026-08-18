@@ -159,5 +159,20 @@
   },
   "ext_descripcion": {
     "descripcion": "Descripcion de la extension (campo `description` del manifest y ficha de la tienda)."
+  },
+  "ext_menu_buscar": {
+    "descripcion": "Entrada del menu contextual. El %s lo sustituye Chrome por el texto seleccionado; no es un placeholder de i18n y por eso no va como $x$."
+  },
+  "ext_popup_intro": {
+    "descripcion": "Texto de ayuda del popup de la extension."
+  },
+  "ext_estado_comprobando": {
+    "descripcion": "Mientras se hace el ping a /api/estado, antes de saber si el servidor vive."
+  },
+  "ext_estado_vivo": {
+    "descripcion": "El servidor local responde. El caso contrario reutiliza off_servidor_caido."
+  },
+  "ext_sin_termino": {
+    "descripcion": "Se pulso buscar con el campo vacio."
   }
 }

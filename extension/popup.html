@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Todo el texto de esta página lo rellena popup.js desde _locales: los
+       elementos nacen vacíos a propósito, para que no quede ninguna cadena
+       escrita en el HTML que se salte el sistema de traducción. -->
+  <header class="cabecera">
+    <img src="iconos/icono-48.png" width="24" height="24" alt="">
+    <h1 id="titulo"></h1>
+  </header>
+
+  <p class="intro" id="intro"></p>
+
+  <form id="formulario">
+    <label class="etiqueta" for="termino" id="etiqueta-termino"></label>
+    <input id="termino" type="text" autocomplete="off" autofocus>
+    <button type="submit" id="boton"></button>
+  </form>
+
+  <p class="error" id="error" hidden></p>
+
+  <p class="estado" id="estado">
+    <span class="punto" id="punto"></span>
+    <span id="estado-texto"></span>
+  </p>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

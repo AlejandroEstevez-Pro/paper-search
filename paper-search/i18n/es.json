@@ -87,5 +87,10 @@
   "off_copia_aviso": "Estás viendo una copia guardada del $fecha$. paper-search no está en marcha, así que estos datos pueden estar desactualizados y no se pueden editar.",
   "off_solo_lectura": "Solo lectura",
   "ext_nombre": "paper-search",
-  "ext_descripcion": "Busca en PubMed el gen o síndrome que tengas seleccionado, usando tu paper-search local."
+  "ext_descripcion": "Busca en PubMed el gen o síndrome que tengas seleccionado, usando tu paper-search local.",
+  "ext_menu_buscar": "Buscar «%s» en paper-search",
+  "ext_popup_intro": "Selecciona un gen o síndrome en cualquier página y usa el botón derecho, o escríbelo aquí.",
+  "ext_estado_comprobando": "Comprobando si paper-search está en marcha…",
+  "ext_estado_vivo": "paper-search está en marcha",
+  "ext_sin_termino": "Escribe un término, o selecciónalo en una página y usa el botón derecho."
 }

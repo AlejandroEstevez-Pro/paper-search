@@ -11,6 +11,20 @@
     "128": "iconos/icono-128.png"
   },
 
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "iconos/icono-16.png",
+      "48": "iconos/icono-48.png",
+      "128": "iconos/icono-128.png"
+    }
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
   "permissions": ["contextMenus"],
 
   "host_permissions": ["http://127.0.0.1:5000/*"]

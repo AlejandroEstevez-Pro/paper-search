@@ -87,5 +87,10 @@
   "off_copia_aviso": "You are viewing a copy saved on $fecha$. paper-search is not running, so this data may be out of date and cannot be edited.",
   "off_solo_lectura": "Read only",
   "ext_nombre": "paper-search",
-  "ext_descripcion": "Search PubMed for the gene or syndrome you have selected, using your local paper-search."
+  "ext_descripcion": "Search PubMed for the gene or syndrome you have selected, using your local paper-search.",
+  "ext_menu_buscar": "Search for «%s» in paper-search",
+  "ext_popup_intro": "Select a gene or syndrome on any page and right-click, or type it here.",
+  "ext_estado_comprobando": "Checking whether paper-search is running…",
+  "ext_estado_vivo": "paper-search is running",
+  "ext_sin_termino": "Type a term, or select it on a page and right-click."
 }

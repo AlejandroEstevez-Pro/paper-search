@@ -107,9 +107,29 @@
     "description": "Descripcion de la extension (campo `description` del manifest y ficha de la tienda).",
     "message": "Search PubMed for the gene or syndrome you have selected, using your local paper-search."
   },
+  "ext_estado_comprobando": {
+    "description": "Mientras se hace el ping a /api/estado, antes de saber si el servidor vive.",
+    "message": "Checking whether paper-search is running…"
+  },
+  "ext_estado_vivo": {
+    "description": "El servidor local responde. El caso contrario reutiliza off_servidor_caido.",
+    "message": "paper-search is running"
+  },
+  "ext_menu_buscar": {
+    "description": "Entrada del menu contextual. El %s lo sustituye Chrome por el texto seleccionado; no es un placeholder de i18n y por eso no va como $x$.",
+    "message": "Search for «%s» in paper-search"
+  },
   "ext_nombre": {
     "description": "Nombre de la extension de Chrome (campo `name` del manifest).",
     "message": "paper-search"
+  },
+  "ext_popup_intro": {
+    "description": "Texto de ayuda del popup de la extension.",
+    "message": "Select a gene or syndrome on any page and right-click, or type it here."
+  },
+  "ext_sin_termino": {
+    "description": "Se pulso buscar con el campo vacio.",
+    "message": "Type a term, or select it on a page and right-click."
   },
   "fav_boton_guardar_nota": {
     "message": "Save note"

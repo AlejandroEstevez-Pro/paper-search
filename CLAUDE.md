@@ -10,6 +10,7 @@ piezas de aquí (ver `docs/roadmap.md`).
 | Nombre | Qué hace | Estado |
 |---|---|---|
 | `paper-search/` | Dado un gen/síndrome, busca en PubMed y resume hallazgos recientes en lenguaje llano | Fases 1-3 completadas (CLI + web local + favoritos, orden y buscador avanzado) |
+| `extension/` | Extensión de Chrome: busca el texto seleccionado en tu paper-search local | Fase 5.3 completada |
 | `symptom-classifier/` | Dado un conjunto de síntomas, sugiere síndromes candidatos (tipo Orphanet) | No empezado — fase 2 |
 
 ## Cómo trabajar en este repo

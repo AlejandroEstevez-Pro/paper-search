@@ -577,3 +577,38 @@ ejecución: sin navegador no se puede cargar el service worker ni abrir el popup
 que de verdad rompe al instalar —manifest que Chrome rechaza, icono declarado que no existe o
 que no mide lo que dice, permiso de más, `default_locale` sin su carpeta— y queda dicho en el
 propio archivo de tests que el resto hay que probarlo a mano en `chrome://extensions`.
+
+2026-08-18 — [extension] La extensión ABRE UNA PESTAÑA con el término puesto, en vez de llamar
+a una API y pintar los resultados en el popup. Motivo decisivo y práctico: un popup de MV3 se
+cierra en cuanto pierde el foco, y una búsqueda con resumen tarda 10-30 s (alcance + resumen +
+verificación), así que moriría a media búsqueda de forma rutinaria. Motivo de fondo:
+renderizar resultados allí obligaría a repetir el aviso de no diagnóstico y la trazabilidad a
+PMID en un segundo sitio, y tener dos implementaciones de esas reglas es donde se pudren. El
+popup existe, pero como lanzador y línea de estado, nunca como visor de resultados.
+
+2026-08-18 — [extension] La URL que abre es `/?termino=X&buscar=1`, no `GET /buscar?termino=X`:
+la página se rellena y envía sola, así que la búsqueda sigue siendo el POST del servidor (ver
+la entrada del lado de paper-search). El guardarraíl de alcance y el aviso de idioma los sigue
+aplicando el servidor; la extensión no los reimplementa ni los esquiva, y hay un test que lo
+comprueba buscando esas señales en su código.
+
+2026-08-18 — [extension] Servidor caído: se detecta preguntando a `/api/estado` con timeout de
+1,5 s, la misma señal que usa la PWA y por el mismo motivo — `navigator.onLine` responde a si
+hay internet, no a si Flask vive, y se equivoca en los dos sentidos. El mensaje reutiliza
+`off_servidor_caido`, que ya existía y ya dice lo útil (arráncalo con run.bat) en vez de un
+«sin conexión» genérico. Desde el menú contextual, además de la insignia `!`, la pestaña se
+abre igualmente: la página `/offline` de la PWA explica el problema mejor de lo que cabe en
+una insignia, y duplicar ese texto sería mantener dos.
+
+2026-08-18 — [extension] La extensión elige idioma por el del navegador (`chrome.i18n`) y la
+web por su cookie, así que pueden discrepar. No se manda `?idioma=` desde la extensión a
+propósito: una preferencia explícita —la que el usuario eligió en la web— debe ganar a una
+implícita —la del navegador—. Queda documentado en el README de la extensión. El `%s` de
+`ext_menu_buscar` es sintaxis de `chrome.contextMenus`, que lo sustituye por lo seleccionado,
+y por eso no va como `$x$` de i18n.
+
+2026-08-18 — [extension] Los tests que inspeccionan el JavaScript le quitan antes los
+comentarios, con un lector que respeta las cadenas. Hace falta porque varios comentarios
+explican precisamente lo que NO se hace —«navigator.onLine no vale aquí», «no se apunta a
+/buscar»— y confundirlos con el código daba falsos positivos. Partir por `//` a lo bruto
+tampoco vale: `http://127.0.0.1` lo contiene.
