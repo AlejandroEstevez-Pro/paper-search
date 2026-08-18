@@ -71,7 +71,7 @@ def test_ninguna_clave_usa_el_prefijo_reservado_de_chrome():
 
 def test_toda_clave_lleva_un_prefijo_de_area_conocido():
     areas = ("app_", "comun_", "nav_", "form_", "err_", "res_", "fil_",
-             "ord_", "exp_", "fav_", "alc_", "idi_", "off_")
+             "ord_", "exp_", "fav_", "alc_", "idi_", "off_", "ext_")
     sin_area = [c for c in claves_disponibles() if not c.startswith(areas)]
 
     assert sin_area == []

@@ -557,3 +557,23 @@ extensión de Chrome, desde el mismo SVG que la web. Las salidas pasan a darse r
 raíz del repo y no a `paper-search/`, porque el icono es un activo de MARCA compartido por los
 dos componentes y la extensión necesita sus PNG dentro de su propia carpeta. El `--comprobar`
 cubre ahora los seis.
+
+2026-08-18 — [extension] Permisos mínimos: `contextMenus` y `host_permissions` acotado a
+`http://127.0.0.1:5000/*`. NO se piden content scripts, `activeTab`, `scripting`, `tabs` ni
+`<all_urls>`. La clave está en `contexts: ["selection"]`, que hace que Chrome entregue el texto
+seleccionado en `info.selectionText` sin que la extensión toque la página: **no puede leer lo
+que el usuario está leyendo**, y en una herramienta médica eso no es un detalle.
+`chrome.tabs.create` no requiere el permiso `tabs` (ese solo abre el acceso a `url`/`title` de
+pestañas ajenas). El `host_permissions` existe solo para preguntar por el estado del servidor.
+Hay tests que fallan si alguien añade un permiso o un content script.
+
+2026-08-18 — [extension] El nombre y la descripción del manifest van como `__MSG_ext_nombre__`
+y `__MSG_ext_descripcion__`, resueltos por `chrome.i18n` contra los `_locales` generados: si
+fueran literales, quedarían fijos en un idioma en la propia ficha de la extensión. Las claves
+nuevas llevan prefijo `ext_` y se añaden a la fuente única, nunca al `messages.json` generado.
+
+2026-08-18 — [extension] Los tests de la extensión comprueban su CONTRATO ESTÁTICO, no su
+ejecución: sin navegador no se puede cargar el service worker ni abrir el popup. Se cubre lo
+que de verdad rompe al instalar —manifest que Chrome rechaza, icono declarado que no existe o
+que no mide lo que dice, permiso de más, `default_locale` sin su carpeta— y queda dicho en el
+propio archivo de tests que el resto hay que probarlo a mano en `chrome://extensions`.

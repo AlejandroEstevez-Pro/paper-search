@@ -103,6 +103,14 @@
   "exp_fallo": {
     "message": "Could not copy automatically (the browser is not granting clipboard access). The text is selected above: copy it with Ctrl+C."
   },
+  "ext_descripcion": {
+    "description": "Descripcion de la extension (campo `description` del manifest y ficha de la tienda).",
+    "message": "Search PubMed for the gene or syndrome you have selected, using your local paper-search."
+  },
+  "ext_nombre": {
+    "description": "Nombre de la extension de Chrome (campo `name` del manifest).",
+    "message": "paper-search"
+  },
   "fav_boton_guardar_nota": {
     "message": "Save note"
   },

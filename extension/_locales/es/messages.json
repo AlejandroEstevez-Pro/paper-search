@@ -103,6 +103,14 @@
   "exp_fallo": {
     "message": "No se ha podido copiar automáticamente (el navegador no da acceso al portapapeles). El texto está seleccionado aquí arriba: cópialo con Ctrl+C."
   },
+  "ext_descripcion": {
+    "description": "Descripcion de la extension (campo `description` del manifest y ficha de la tienda).",
+    "message": "Busca en PubMed el gen o síndrome que tengas seleccionado, usando tu paper-search local."
+  },
+  "ext_nombre": {
+    "description": "Nombre de la extension de Chrome (campo `name` del manifest).",
+    "message": "paper-search"
+  },
   "fav_boton_guardar_nota": {
     "message": "Guardar nota"
   },

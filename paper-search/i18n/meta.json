@@ -153,5 +153,11 @@
   },
   "off_solo_lectura": {
     "descripcion": "Etiqueta en los botones deshabilitados de una pagina servida desde cache."
+  },
+  "ext_nombre": {
+    "descripcion": "Nombre de la extension de Chrome (campo `name` del manifest)."
+  },
+  "ext_descripcion": {
+    "descripcion": "Descripcion de la extension (campo `description` del manifest y ficha de la tienda)."
   }
 }

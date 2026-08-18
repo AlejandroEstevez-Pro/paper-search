@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_ext_nombre__",
+  "description": "__MSG_ext_descripcion__",
+  "version": "1.0.0",
+  "default_locale": "es",
+
+  "icons": {
+    "16": "iconos/icono-16.png",
+    "48": "iconos/icono-48.png",
+    "128": "iconos/icono-128.png"
+  },
+
+  "permissions": ["contextMenus"],
+
+  "host_permissions": ["http://127.0.0.1:5000/*"]
+}
