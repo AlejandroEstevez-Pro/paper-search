@@ -390,6 +390,35 @@ advertencia de lo que se está abriendo.
 > Úsalo en tu red de casa, no en una wifi pública ni compartida, y apágalo
 > cuando termines: sin `--red` vuelve a escuchar solo en este equipo.
 
+### Qué NO funciona desde el móvil
+
+Sobre la red local la dirección es `http://192.168.x.x:5000`, y el navegador
+**no** considera eso un «contexto seguro» (solo lo son `https` y `localhost`).
+Conviene saberlo antes de probarlo:
+
+| | Desde el móvil por wifi |
+|---|---|
+| Buscar, resúmenes, referencias | ✅ |
+| Favoritos y notas | ✅ |
+| Orden, filtros, idiomas | ✅ |
+| Instalar como app (PWA) | ❌ el navegador no lo ofrece |
+| Funcionamiento sin conexión | ❌ no se registra el service worker |
+| Botón «Copiar para NotebookLM» | ⚠️ cae a seleccionar y copiar a mano |
+
+**En el móvil es una web normal, no una PWA.** No es un fallo: los service
+workers exigen HTTPS o localhost, y una IP de red local no cumple ninguna de
+las dos. En el ordenador, donde se abre por `127.0.0.1`, la PWA sigue
+instalándose y funcionando sin conexión como siempre.
+
+Montar HTTPS lo arreglaría, pero no basta con un certificado autofirmado —el
+navegador bloquea los service workers en un origen con error de certificado—:
+haría falta una CA propia instalada también en el móvil. Es bastante montaje
+para lo que se gana, así que de momento se queda así. Un túnel público está
+descartado por otro motivo: haría pasar búsquedas médicas por un tercero.
+
+La extensión de Chrome no necesita ningún cambio: se usa desde el ordenador, y
+ahí `127.0.0.1` sigue funcionando aunque el servidor escuche también en la red.
+
 ## Caché, límites y registro locales
 
 Todo vive en un único archivo SQLite, por defecto

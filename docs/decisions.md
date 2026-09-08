@@ -637,6 +637,36 @@ con instrucciones (`ipconfig` / `ip addr`) y el aviso de seguridad sale igual: e
 está escuchando en la red, así que no saber la IP no puede hacer que desaparezca la
 advertencia.
 
+2026-08-18 — [paper-search] Sobre la red local, `http://192.168.x.x:5000` NO es un «contexto
+seguro» para el navegador: la especificación solo considera de confianza `https`, `wss`,
+`file` y el loopback (`127.0.0.1/8`, `::1`, `localhost`). Consecuencias concretas en el móvil,
+que conviene saber antes de probarlo: (1) `navigator.serviceWorker` no existe, así que **no se
+registra el service worker** y no hay página de sin conexión ni caché; (2) Chrome **no ofrece
+instalar la PWA**, porque sus criterios exigen un service worker registrado en contexto
+seguro; (3) `navigator.clipboard` tampoco existe, así que el botón de copiar cae a su
+alternativa. Lo que sí funciona es todo lo demás: buscar, favoritos, notas, orden, filtros e
+idiomas. En el móvil es una web normal, no una PWA. Las tres guardas ya estaban escritas
+defensivamente (`'serviceWorker' in navigator`, `navigator.clipboard && ...`), así que degradan
+solas sin cambiar nada.
+
+2026-08-18 — [paper-search] Se acepta esa limitación en vez de montar HTTPS. Un certificado
+autofirmado no basta: el navegador bloquea los service workers en un origen con error de
+certificado, así que haría falta una CA propia instalada en el móvil (tipo `mkcert`), que es
+bastante montaje para un beneficio pequeño. Un túnel público queda descartado por otra razón:
+haría pasar búsquedas médicas por un tercero.
+
+2026-08-18 — [extension] La extensión NO amplía `host_permissions` a la IP de la red local.
+Tres motivos: (1) se usa desde el portátil, y ahí `127.0.0.1:5000` sigue funcionando aunque el
+servidor escuche en 0.0.0.0, porque esa interfaz incluye el loopback; (2) la IP la reparte el
+DHCP y cambia, así que habría que pedir un patrón amplio tipo `http://192.168.*.*/*` — ampliar
+permisos de verdad a cambio de nada; (3) Chrome para Android no admite extensiones, así que en
+el móvil no existe. Cero cambios en la extensión.
+
+2026-08-18 — [paper-search] La política de caché del service worker resultó ser independiente
+del host: `sw.js` compara contra `self.location.origin` y `pwa.py` trabaja con rutas, así que
+todo el precache es relativo al origen. No hizo falta tocar nada; las menciones a 127.0.0.1
+eran comentarios, que sí se han matizado.
+
 2026-08-18 — [paper-search] `exp_fallo` decía «cópialo con Ctrl+C», y ese es precisamente el
 mensaje que aparece en el móvil, porque el portapapeles queda bloqueado sin contexto seguro.
 En un teléfono, «Ctrl+C» no significa nada. Ahora menciona las dos formas.
