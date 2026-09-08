@@ -91,3 +91,77 @@
   font-size: 13px; cursor: pointer;
 }
 .ps-cache-nota { font-size: 13px; margin: 0 0 var(--space-3); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Clases que las fases 3-5 añadieron a las plantillas y se habían quedado
+   sin estilo. En escritorio pasaba desapercibido —el navegador pinta un
+   botón por defecto— pero en el móvil quedaban objetivos táctiles de ~20 px,
+   imposibles de acertar con el dedo. Se les da lo mínimo: tamaño, aire y la
+   misma paleta que el resto. No es un rediseño.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Botón de favorito de cada resultado. 44 px es el mínimo recomendado para
+   tocar con el dedo; por debajo se falla constantemente. */
+.ps-fav {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-accent);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+}
+.ps-fav:hover { border-color: var(--color-accent); }
+.ps-fav[aria-pressed="true"] { border-color: var(--color-accent); }
+.ps-fav:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.ps-exportar { margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+.ps-exportar .btn { align-self: flex-start; min-height: 44px; }
+
+.ps-refinar {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.ps-avanzada { border: 1px solid var(--color-divider); border-radius: var(--radius-md); padding: var(--space-3); }
+.ps-avanzada > summary { cursor: pointer; font-size: 14px; }
+.ps-avanzada > .field { margin-top: var(--space-3); }
+
+.ps-idiomas { margin: var(--space-2) 0 0; font-size: 13px; }
+.ps-idiomas a { padding: var(--space-1); }
+
+.ps-form-nota { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
+.ps-form-nota .btn, .ps-form-quitar .btn { align-self: flex-start; min-height: 44px; }
+.ps-form-quitar { margin-top: var(--space-2); }
+
+/* Títulos de artículo y mensajes de error: un término médico largo o una
+   consulta de PubMed sin espacios desbordarían la pantalla a lo ancho. */
+.card-title, .ps-notice .card-body { overflow-wrap: anywhere; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Pantallas pequeñas. La maquetación ya era fluida (max-width + flex-wrap),
+   así que aquí solo se corrigen las cuatro cosas que sí molestan de verdad.
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Menos margen lateral: en 360 px, 18 px por lado se comen el 10 %. */
+  .ps-page { padding: var(--space-4) var(--space-3); }
+
+  /* El texto justificado abre ríos enormes en una columna estrecha, y más
+     con términos médicos largos que no se parten. */
+  .ps-summary p { text-align: left; }
+
+  /* Los dos campos numéricos se reparten la fila en vez de reservar 130 px
+     fijos cada uno, que dejaban al botón sin sitio. */
+  .ps-field-num { flex: 1 1 40%; }
+  .ps-actions { flex: 1 1 100%; }
+  .ps-actions .btn { width: 100%; min-height: 44px; }
+
+  /* Safari en iOS hace zoom automático al enfocar un campo con menos de
+     16 px, y luego deja la página descuadrada. Subirlos lo evita. */
+  .input, .ps-input-term { font-size: 16px; }
+
+  h1 { font-size: 32px; }
+  h2 { font-size: 25px; }
+}

@@ -50,7 +50,7 @@
   "exp_boton_copiar": "Copiar para NotebookLM",
   "exp_boton_copiado": "¡Copiado!",
   "exp_ayuda": "Pégalo como fuente de texto en NotebookLM o Gemini Notebook. Incluye el término buscado, el resumen con sus PMIDs, las referencias y el aviso médico.",
-  "exp_fallo": "No se ha podido copiar automáticamente (el navegador no da acceso al portapapeles). El texto está seleccionado aquí arriba: cópialo con Ctrl+C.",
+  "exp_fallo": "No se ha podido copiar automáticamente (el navegador no da acceso al portapapeles). El texto está seleccionado aquí arriba: cópialo con Ctrl+C, o manteniéndolo pulsado si estás en el móvil.",
   "fav_titulo_pagina": "Mis favoritos — paper-search",
   "fav_titulo": "Mis favoritos",
   "fav_descripcion": "Papers que has guardado, con tus notas. Los datos salen de la base local: no se consulta PubMed para mostrarlos.",

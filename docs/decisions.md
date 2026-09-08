@@ -636,3 +636,23 @@ dirección que no puede funcionar. Si solo hay loopback o falla el socket, se la
 con instrucciones (`ipconfig` / `ip addr`) y el aviso de seguridad sale igual: el servidor ya
 está escuchando en la red, así que no saber la IP no puede hacer que desaparezca la
 advertencia.
+
+2026-08-18 — [paper-search] `exp_fallo` decía «cópialo con Ctrl+C», y ese es precisamente el
+mensaje que aparece en el móvil, porque el portapapeles queda bloqueado sin contexto seguro.
+En un teléfono, «Ctrl+C» no significa nada. Ahora menciona las dos formas.
+
+2026-08-18 — [paper-search] Al revisar la maquetación en móvil aparecieron OCHO clases de las
+plantillas sin ninguna regla CSS (`ps-fav`, `ps-exportar`, `ps-refinar`, `ps-avanzada`,
+`ps-idiomas`, `ps-form-nota`, `ps-form-quitar`, y `ps-num`, esta última solo gancho de JS). En
+escritorio pasaba desapercibido —el navegador pinta un botón por defecto— pero eran objetivos
+táctiles de unos 20 px, imposibles de acertar con el dedo. Se les da lo mínimo (44 px de alto
+mínimo y la paleta de siempre), no un rediseño. Hay un test que recorre las clases `ps-` de
+cada página y falla si alguna se queda sin regla.
+
+2026-08-18 — [paper-search] El bloque de móvil corrige solo cuatro cosas que molestan de
+verdad: el texto del resumen deja de ir justificado (en una columna estrecha abre ríos
+enormes, y más con términos médicos que no se parten), los campos numéricos dejan de reservar
+130 px fijos que ahogaban al botón de buscar, los campos suben a 16 px porque Safari en iOS
+hace zoom automático por debajo de eso y deja la página descuadrada, y se reduce el margen
+lateral. Un test comprueba que esas reglas viven DENTRO del `@media` y no se cuelan al
+escritorio, que ya funcionaba.

@@ -101,7 +101,7 @@
     "message": "Copy for NotebookLM"
   },
   "exp_fallo": {
-    "message": "Could not copy automatically (the browser is not granting clipboard access). The text is selected above: copy it with Ctrl+C."
+    "message": "Could not copy automatically (the browser is not granting clipboard access). The text is selected above: copy it with Ctrl+C, or press and hold if you are on a phone."
   },
   "ext_descripcion": {
     "description": "Descripcion de la extension (campo `description` del manifest y ficha de la tienda).",

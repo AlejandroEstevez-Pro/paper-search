@@ -101,7 +101,7 @@
     "message": "Copiar para NotebookLM"
   },
   "exp_fallo": {
-    "message": "No se ha podido copiar automáticamente (el navegador no da acceso al portapapeles). El texto está seleccionado aquí arriba: cópialo con Ctrl+C."
+    "message": "No se ha podido copiar automáticamente (el navegador no da acceso al portapapeles). El texto está seleccionado aquí arriba: cópialo con Ctrl+C, o manteniéndolo pulsado si estás en el móvil."
   },
   "ext_descripcion": {
     "description": "Descripcion de la extension (campo `description` del manifest y ficha de la tienda).",

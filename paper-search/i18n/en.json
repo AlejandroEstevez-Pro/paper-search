@@ -50,7 +50,7 @@
   "exp_boton_copiar": "Copy for NotebookLM",
   "exp_boton_copiado": "Copied!",
   "exp_ayuda": "Paste it as a text source in NotebookLM or Gemini Notebook. It includes the search term, the summary with its PMIDs, the references and the medical notice.",
-  "exp_fallo": "Could not copy automatically (the browser is not granting clipboard access). The text is selected above: copy it with Ctrl+C.",
+  "exp_fallo": "Could not copy automatically (the browser is not granting clipboard access). The text is selected above: copy it with Ctrl+C, or press and hold if you are on a phone.",
   "fav_titulo_pagina": "My favourites — paper-search",
   "fav_titulo": "My favourites",
   "fav_descripcion": "Papers you have saved, with your notes. The data comes from the local database: PubMed is not queried to show them.",
