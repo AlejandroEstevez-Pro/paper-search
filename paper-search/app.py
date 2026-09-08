@@ -382,7 +382,11 @@ def buscar():
     return render_template(
         "index.html",
         resultado=resultado,
-        parrafos=segmentar_resumen(resultado.resumen or ""),
+        # Solo se enlazan los PMID de los artículos que PubMed devolvió de
+        # verdad: uno que no esté en esta lista se queda como texto plano.
+        parrafos=segmentar_resumen(
+            resultado.resumen or "", [p.pmid for p in resultado.papers]
+        ),
         favoritos=marcados,
         texto_exportado=texto_para_notebooklm(resultado),
         **contexto,

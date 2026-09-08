@@ -143,7 +143,12 @@
             {% if parrafos %}
               <div class="ps-summary">
                 {% for parrafo in parrafos %}
-                  <p>{% for seg in parrafo %}{% if seg.es_cita %}<span class="pmid">{{ seg.texto }}</span>{% else %}{{ seg.texto }}{% endif %}{% endfor %}</p>
+                  {# Cada trozo se pinta por separado y Jinja lo escapa. Aquí no
+                     se interpola HTML montado en Python ni se usa `|safe`: si
+                     el resumen trae marcado, se ve como texto, que es lo que
+                     debe pasar. Solo se enlazan los PMID de los artículos
+                     realmente recuperados (ver `segmentar_resumen`). #}
+                  <p>{% for seg in parrafo %}{% if seg.es_cita %}<span class="pmid">{% for parte in seg.partes %}{% if parte.url %}<a href="{{ parte.url }}" target="_blank" rel="noopener">{{ parte.texto }}</a>{% else %}{{ parte.texto }}{% endif %}{% endfor %}</span>{% else %}{{ seg.texto }}{% endif %}{% endfor %}</p>
                 {% endfor %}
               </div>
 

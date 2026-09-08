@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -44,22 +45,89 @@ class PaperSearchError(Exception):
     """Base de los errores del paquete. La CLI la usa para dar un mensaje limpio."""
 
 
+#: Cada número dentro de una cita. Una cita puede llevar varios
+#: (`[PMID: 111, 222]`) y cada uno es un artículo distinto.
+_PATRON_NUMERO = re.compile(r"\d+")
+
+
+@dataclass(frozen=True)
+class ParteCita:
+    """Un trozo de una cita: o texto literal, o un PMID con su enlace.
+
+    `url` a `None` significa que ese trozo va tal cual, sin enlazar. Es lo que
+    les toca a los corchetes, al «PMID:» y a las comas — y también a un PMID
+    que no esté entre los artículos recuperados (ver `_partir_cita`).
+    """
+
+    texto: str
+    url: str | None = None
+
+    @property
+    def es_enlace(self) -> bool:
+        return self.url is not None
+
+
 @dataclass(frozen=True)
 class Segmento:
     """Un trozo de resumen: texto normal o una cita `[PMID: ...]`."""
 
     texto: str
     es_cita: bool = False
+    #: Solo en las citas: el desglose para poder enlazar cada PMID por
+    #: separado. Se guarda como DATOS, no como HTML —ver `segmentar_resumen`.
+    partes: tuple[ParteCita, ...] = ()
 
 
-def segmentar_resumen(resumen: str) -> tuple[tuple[Segmento, ...], ...]:
+def _partir_cita(texto: str, pmids_validos: frozenset[str]) -> tuple[ParteCita, ...]:
+    """Desglosa `[PMID: 111, 222]` en sus trozos, marcando cuáles se enlazan.
+
+    Solo se enlaza un PMID que esté en `pmids_validos`, es decir, entre los
+    artículos que PubMed devolvió de verdad para esta búsqueda. Uno que no esté
+    se deja como texto plano: enlazarlo le daría apariencia de cita legítima
+    justo cuando no lo es. La verificación del resumen (`verificacion.py`) ya
+    impide que llegue aquí, pero esto no depende de que aquello funcione.
+
+    Concatenar los `texto` de las partes reproduce la cita original carácter a
+    carácter: aquí no se reescribe nada, solo se marca dónde está cada PMID.
+    """
+    partes: list[ParteCita] = []
+    posicion = 0
+    for numero in _PATRON_NUMERO.finditer(texto):
+        if numero.start() > posicion:
+            partes.append(ParteCita(texto[posicion : numero.start()]))
+        pmid = numero.group()
+        enlace = url_de_pmid(pmid) if pmid in pmids_validos else None
+        partes.append(ParteCita(pmid, enlace))
+        posicion = numero.end()
+    if posicion < len(texto):
+        partes.append(ParteCita(texto[posicion:]))
+    return tuple(partes)
+
+
+def segmentar_resumen(
+    resumen: str, pmids_validos: "Iterable[str] | None" = None
+) -> tuple[tuple[Segmento, ...], ...]:
     """Parte el resumen en párrafos y separa las citas del texto que las rodea.
 
     La interfaz web las resalta para que se vea de un vistazo qué afirmación se
     apoya en qué paper. No se toca el texto: solo se marca dónde está cada cita,
     así que el resumen se muestra íntegro aunque el modelo no cite como se
     esperaba.
+
+    Con `pmids_validos` —los PMIDs de los artículos realmente recuperados— cada
+    cita se desglosa además en `partes`, para que la plantilla pueda enlazar
+    cada PMID a PubMed. Sin ellos no se enlaza nada: el valor por defecto es el
+    seguro, así que un consumidor que no los pase no acaba publicando enlaces
+    que no puede respaldar.
+
+    Aquí NO se genera HTML. Se devuelven datos —texto y, como mucho, una URL— y
+    es la plantilla la que los pinta, con el escapado automático de Jinja. Si
+    este código montara el `<a>` como cadena habría que marcarlo como seguro al
+    renderizar, y ese `|safe` sería una puerta abierta a que cualquier cosa que
+    el modelo escriba en el resumen acabe interpretándose como marcado.
     """
+    validos = frozenset(str(p) for p in (pmids_validos or ()))
+
     parrafos: list[tuple[Segmento, ...]] = []
     for bruto in (resumen or "").split("\n\n"):
         parrafo = bruto.strip()
@@ -71,7 +139,14 @@ def segmentar_resumen(resumen: str) -> tuple[tuple[Segmento, ...], ...]:
         for cita in PATRON_CITA.finditer(parrafo):
             if cita.start() > posicion:
                 segmentos.append(Segmento(parrafo[posicion : cita.start()]))
-            segmentos.append(Segmento(cita.group(), es_cita=True))
+            texto_cita = cita.group()
+            segmentos.append(
+                Segmento(
+                    texto_cita,
+                    es_cita=True,
+                    partes=_partir_cita(texto_cita, validos),
+                )
+            )
             posicion = cita.end()
         if posicion < len(parrafo):
             segmentos.append(Segmento(parrafo[posicion:]))

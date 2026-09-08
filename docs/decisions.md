@@ -686,3 +686,42 @@ enormes, y más con términos médicos que no se parten), los campos numéricos 
 hace zoom automático por debajo de eso y deja la página descuadrada, y se reduce el margen
 lateral. Un test comprueba que esas reglas viven DENTRO del `@media` y no se cuelan al
 escritorio, que ya funcionaba.
+
+2026-08-18 — [paper-search] Las citas `[PMID: ...]` del resumen pasan a ser enlaces a PubMed.
+El enlazado se hace en el SERVIDOR, por el mismo motivo que `exportar.py` arma allí el texto:
+es lo que permite probarlo con pytest y no depender de que el JavaScript se ejecute. Manipular
+el DOM en el navegador habría dejado la trazabilidad —que es una regla dura del proyecto— sin
+más red que un script.
+
+2026-08-18 — [paper-search] Solo se enlazan los PMID que están entre los artículos realmente
+recuperados. `segmentar_resumen` recibe ahora esa lista y, sin ella, NO enlaza nada: el valor
+por defecto es el seguro, así que un consumidor que se olvide de pasarla no acaba publicando
+enlaces que no puede respaldar.
+
+2026-08-18 — [paper-search] Un PMID citado que NO esté en esa lista se deja como texto plano,
+sin enlace y sin marca visual añadida. Enlazarlo le daría exactamente la apariencia de cita
+legítima que no tiene, que es lo que hay que evitar. Se descartó marcarlo con un distintivo
+visible por dos razones: obligaría a un texto nuevo en el sistema de traducción para explicar
+un estado que la verificación del resumen ya impide que ocurra (`verificacion.py` rechaza un
+resumen con PMIDs ajenos), y el objetivo aquí no es señalarlo con un cartel sino no darle
+crédito. Tampoco se oculta: borrarlo escondería que el resumen citó algo que no se recuperó.
+Como además ese PMID no aparecerá en la lista de referencias, se ve solo que no está
+respaldado.
+
+2026-08-18 — [paper-search] El HTML del enlace NO se monta en Python. `segmentar_resumen`
+devuelve datos —`ParteCita(texto, url)`— y es la plantilla la que pinta el `<a>`, con el
+escapado automático de Jinja. Si el `<a>` se construyera como cadena en Python haría falta un
+`|safe` al renderizarlo, y ese `|safe` sería una puerta abierta a que cualquier cosa que el
+modelo escriba en el resumen se interprete como marcado. Hay un test estructural que falla si
+aparece `Markup`, un `<a ` en `models.py` o un `|safe` en el bloque del resumen.
+
+2026-08-18 — [paper-search] Trocear una cita conserva el texto carácter a carácter:
+concatenar los trozos reproduce la cita original, separadores incluidos. Es un invariante con
+test, y la garantía de que esto marca dónde están los PMID en vez de reescribir el resumen.
+Cada número de una cita con varios (`[PMID: 111, 222]`) se enlaza por separado, así que una
+cita mixta puede tener un PMID enlazado y otro no.
+
+2026-08-18 — [paper-search] La salida de `exportar.py` no cambia: allí las citas siguen en
+texto plano y las referencias ya llevaban su enlace. `exportar.py` no se ha tocado —lee
+`resultado.resumen`, que no se muta— y hay tests de no-regresión que comprueban que el texto
+exportado no contiene `<a ` ni `href=`. La CLI tampoco cambia: no usa `segmentar_resumen`.

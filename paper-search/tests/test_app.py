@@ -111,7 +111,10 @@ def test_muestra_el_resumen_con_las_citas_resaltadas(cliente, monkeypatch):
 
     cuerpo = texto(cliente.post("/buscar", data={"termino": "SCN1A"}))
 
-    assert '<span class="pmid">[PMID: 38123456]</span>' in cuerpo
+    # La cita sigue resaltada, y desde la Fase 6 el PMID de dentro es un
+    # enlace al artículo (ver test_citas_enlazadas.py).
+    assert '<span class="pmid">[PMID: <a href=' in cuerpo
+    assert ">38123456</a>]</span>" in cuerpo
     assert "Se han descrito variantes nuevas" in cuerpo
 
 
