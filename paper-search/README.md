@@ -360,6 +360,36 @@ guardar cambios fallaría en silencio.
 - No encola cambios «para cuando vuelva la conexión». Si algo no se puede
   guardar, se dice en el momento.
 
+## Usarlo desde el móvil (misma wifi)
+
+Por defecto el servidor solo escucha en `127.0.0.1`, que alcanza únicamente
+este ordenador. Para entrar desde el móvil hay que abrirlo a la red **a
+propósito**:
+
+```bash
+python app.py --red
+```
+
+o doble clic en **`run-red.bat`**, que pregunta antes de continuar. También
+vale `PAPER_SEARCH_RED=1`, pensado para quien arranca con `flask run`.
+
+Al arrancar así, la consola imprime la dirección exacta que hay que escribir en
+el móvil —detecta la IP de este equipo, no hay que buscarla— junto con la
+advertencia de lo que se está abriendo.
+
+> ### Lo que estás aceptando
+>
+> **No hay contraseña de ningún tipo.** Cualquiera conectado a esa wifi que
+> sepa la dirección puede:
+>
+> - leer tus favoritos y tus notas personales,
+> - ver todo lo que has buscado,
+> - lanzar búsquedas que gastan tu clave de la API y tu cuota diaria — es
+>   decir, tu dinero.
+>
+> Úsalo en tu red de casa, no en una wifi pública ni compartida, y apágalo
+> cuando termines: sin `--red` vuelve a escuchar solo en este equipo.
+
 ## Caché, límites y registro locales
 
 Todo vive en un único archivo SQLite, por defecto

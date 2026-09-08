@@ -7,13 +7,16 @@ Igual que `cli.py`, este módulo es solo entrada/salida: la búsqueda y el
 resumen los hace `buscar_y_resumir`, la misma función pública del paquete que
 usa la CLI. Aquí no hay lógica de negocio duplicada.
 
-El servidor escucha únicamente en 127.0.0.1: es una herramienta local para una
-persona, no un servicio expuesto a la red. La clave de la API vive solo en este
-proceso y nunca llega al navegador.
+El servidor escucha por defecto únicamente en 127.0.0.1: es una herramienta
+local para una persona, no un servicio expuesto a la red. Con `--red` se puede
+abrir a la red local para entrar desde el móvil, pero nunca por defecto y
+siempre con la advertencia de lo que eso expone (ver `red.py`). La clave de la
+API vive solo en este proceso y nunca llega al navegador.
 """
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -47,7 +50,14 @@ from paper_search.i18n import IDIOMA_REFERENCIA  # noqa: E402
 from paper_search.orden import ETIQUETAS as ETIQUETAS_ORDEN  # noqa: E402
 from paper_search.db import ahora_utc_iso  # noqa: E402
 from paper_search.pwa import RUTA_ESTADO, politica  # noqa: E402
+from paper_search.red import (  # noqa: E402
+    host_para,
+    modo_red_activado,
+    texto_arranque,
+)
 
+#: Interfaz por defecto: solo este equipo. Para llegar desde el móvil hay que
+#: pedirlo a propósito con `--red` (ver `red.py`); nunca ocurre por defecto.
 HOST = "127.0.0.1"
 PUERTO = 5000
 
@@ -500,10 +510,16 @@ def _entero_positivo(
     return numero, None
 
 
-def main() -> None:
-    print(f"paper-search — servidor local en http://{HOST}:{PUERTO}")
-    print("Cierra esta ventana (o pulsa Ctrl+C) para detenerlo.")
-    app.run(host=HOST, port=PUERTO, debug=False)
+def main(argv: list[str] | None = None) -> None:
+    """Arranca el servidor.
+
+    Sin argumentos escucha solo en 127.0.0.1. Con `--red` (o
+    `PAPER_SEARCH_RED=1`) escucha en toda la red local para poder entrar desde
+    el móvil, e imprime la URL y la advertencia de lo que eso expone.
+    """
+    en_red = modo_red_activado(sys.argv[1:] if argv is None else argv, os.environ)
+    print(texto_arranque(PUERTO, en_red), flush=True)
+    app.run(host=host_para(en_red), port=PUERTO, debug=False)
 
 
 if __name__ == "__main__":

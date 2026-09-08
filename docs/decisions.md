@@ -612,3 +612,27 @@ comentarios, con un lector que respeta las cadenas. Hace falta porque varios com
 explican precisamente lo que NO se hace —«navigator.onLine no vale aquí», «no se apunta a
 /buscar»— y confundirlos con el código daba falsos positivos. Partir por `//` a lo bruto
 tampoco vale: `http://127.0.0.1` lo contiene.
+
+2026-08-18 — [paper-search] Fase 5.4, acceso desde el móvil: el servidor puede escuchar en
+0.0.0.0, pero **nunca por defecto**. Se activa con `--red` (o `PAPER_SEARCH_RED=1`), y se
+prefiere el flag a una variable en el `.env` justamente porque una variable en un archivo se
+queda puesta y se olvida: el flag vale para un arranque concreto. `run-red.bat` existe para
+quien no usa terminal, y pregunta antes de continuar — doble clic no debe bastar para abrir
+el servidor a toda la wifi.
+
+2026-08-18 — [paper-search] La advertencia en consola enumera QUÉ queda expuesto y no un «ten
+cuidado» genérico, que nadie lee: sin contraseña, cualquiera en esa wifi puede leer los
+favoritos y sus notas personales, ver todo el historial de búsquedas, y lanzar búsquedas que
+gastan la clave de la API y la cuota diaria — o sea, dinero. Hay tests que fallan si esas
+cuatro cosas dejan de mencionarse.
+
+2026-08-18 — [paper-search] La IP local se detecta abriendo un socket UDP «hacia» 192.0.2.1
+(red de documentación, RFC 5737) y leyendo la dirección de origen que asigna el sistema: eso
+da la interfaz de la ruta por defecto, que es la que ve el móvil. Con UDP, `connect` no envía
+ningún paquete. Se descarta `gethostbyname(gethostname())` porque devuelve 127.0.0.1 en muchas
+configuraciones de Linux y la interfaz equivocada en portátiles con VPN o adaptadores
+virtuales — y una IP equivocada en pantalla es peor que ninguna, porque manda a probar una
+dirección que no puede funcionar. Si solo hay loopback o falla el socket, se lanza `RedError`
+con instrucciones (`ipconfig` / `ip addr`) y el aviso de seguridad sale igual: el servidor ya
+está escuchando en la red, así que no saber la IP no puede hacer que desaparezca la
+advertencia.

@@ -8,7 +8,8 @@ Sacando la política a Python se prueba de verdad la parte que decide, y en el
 líneas de código estándar. La política viaja al service worker serializada
 como JSON (ver la ruta `/sw.js` en `app.py`).
 
-Contexto que explica las decisiones: **paper-search se sirve desde 127.0.0.1**,
+Contexto que explica las decisiones: **paper-search se sirve desde 127.0.0.1**
+(o desde la IP de la red local, si se arranca con `--red`; ver `red.py`),
 así que "sin conexión" son dos situaciones muy distintas y conviene no
 mezclarlas:
 
