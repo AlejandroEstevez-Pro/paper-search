@@ -797,3 +797,20 @@ citas en texto plano, sin HTML, y el aviso médico al final.
 resumidor. La ayuda de argparse y los mensajes de la propia CLI siguen en español: traducirlos
 habría metido el sistema de i18n en el arranque de la CLI sin que nadie lo haya pedido, y el
 brief no lo cubre.
+
+2026-10-19 — [repo] Para la publicación, `paper-search/README.md` pasa a estar en inglés y
+orientado a quien llega sin contexto: primero el problema y para quién, después el enfoque de
+fiabilidad con su porqué, después este registro, y la instalación al final. El manual de uso
+completo se conserva en castellano como `paper-search/README.es.md`, renombrado en un commit
+propio para que `git log --follow` conserve su historial, y los dos se enlazan entre sí. Este
+registro sigue en castellano: es la lengua de trabajo del proyecto.
+
+2026-10-19 — [repo] Se añade un `README.md` en la RAÍZ del repo, que no se había pedido. Motivo:
+es la página que GitHub enseña al entrar en el repositorio, y sin ella quien llega solo ve una
+lista de carpetas. Se queda en una portada mínima (qué hay, el aviso de no diagnóstico,
+licencia) que remite al README de paper-search, para no mantener dos versiones del mismo texto.
+
+2026-10-19 — [paper-search] El README inglés documenta la CLI tal como es: con los comandos y
+opciones en castellano (`buscar`, `--dias`, `--idioma en`). No se traducen ni se les añaden
+alias ingleses. Esa decisión ya está tomada más arriba, y un README que prometiera `search`
+fallaría en el primer comando que alguien copiara.

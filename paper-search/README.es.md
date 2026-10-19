@@ -1,5 +1,7 @@
 # paper-search
 
+[English](README.md) · **Español**
+
 Buscador/resumidor de papers de PubMed por gen o síndrome **relacionado con
 enfermedades raras**. Genera un resumen en lenguaje llano de los hallazgos
 recientes, siempre con trazabilidad a los PMIDs originales.
