@@ -100,6 +100,94 @@
   "exp_boton_copiar": {
     "message": "Copy for NotebookLM"
   },
+  "exp_doc_autor": {
+    "description": "Autor, en la cabecera del texto exportado.",
+    "message": "Author: $valor$",
+    "placeholders": {
+      "valor": {
+        "content": "$1"
+      }
+    }
+  },
+  "exp_doc_aviso": {
+    "description": "Encabezado de la sección del aviso médico en el texto exportado.",
+    "message": "NOTICE"
+  },
+  "exp_doc_consulta": {
+    "description": "Consulta ya montada que se mandó a PubMed. Explica por qué salieron esos artículos.",
+    "message": "Query sent to PubMed: $valor$",
+    "placeholders": {
+      "valor": {
+        "content": "$1"
+      }
+    }
+  },
+  "exp_doc_patogeno": {
+    "description": "Patógeno, en la cabecera del texto exportado.",
+    "message": "Pathogen: $valor$",
+    "placeholders": {
+      "valor": {
+        "content": "$1"
+      }
+    }
+  },
+  "exp_doc_recuperados": {
+    "description": "Cuántos artículos trajo la búsqueda.",
+    "message": "Articles retrieved: $total$",
+    "placeholders": {
+      "total": {
+        "content": "$1"
+      }
+    }
+  },
+  "exp_doc_referencias": {
+    "description": "Encabezado de sección del texto exportado, con cuántas hay.",
+    "message": "REFERENCES ($total$)",
+    "placeholders": {
+      "total": {
+        "content": "$1"
+      }
+    }
+  },
+  "exp_doc_resumen": {
+    "description": "Encabezado de sección del texto exportado. En mayúsculas.",
+    "message": "SUMMARY"
+  },
+  "exp_doc_sin_resumen": {
+    "description": "No hubo resumen y no consta el motivo.",
+    "message": "No summary was generated for this search. The references below come straight from PubMed."
+  },
+  "exp_doc_sin_resumen_motivo": {
+    "description": "Se exporta igual aunque no haya resumen: las referencias son reales.",
+    "message": "No summary was generated for this search. Reason: $motivo$",
+    "placeholders": {
+      "motivo": {
+        "content": "$1"
+      }
+    }
+  },
+  "exp_doc_termino": {
+    "description": "Término buscado, en la cabecera del texto exportado.",
+    "message": "Term: $valor$",
+    "placeholders": {
+      "valor": {
+        "content": "$1"
+      }
+    }
+  },
+  "exp_doc_titulo": {
+    "description": "Cabecera del texto que se exporta a NotebookLM.",
+    "message": "PUBMED SEARCH — paper-search"
+  },
+  "exp_doc_ventana": {
+    "description": "Ventana temporal de la búsqueda, en el texto exportado.",
+    "message": "Window: articles from the last $dias$ days",
+    "placeholders": {
+      "dias": {
+        "content": "$1"
+      }
+    }
+  },
   "exp_fallo": {
     "message": "Could not copy automatically (the browser is not granting clipboard access). The text is selected above: copy it with Ctrl+C, or press and hold if you are on a phone."
   },

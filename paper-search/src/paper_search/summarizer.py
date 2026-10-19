@@ -12,7 +12,9 @@ import os
 from collections.abc import Callable, Sequence
 from typing import Any
 
+from .i18n import IDIOMA_REFERENCIA
 from .models import PaperSearchError, Paper
+from .prompts import cabecera_correcciones, sistema_resumen
 
 MODELO_POR_DEFECTO = "claude-opus-5"
 MAX_TOKENS = 16000
@@ -21,35 +23,6 @@ MAX_TOKENS = 16000
 #: PubMed rara vez pasan de ~2500 caracteres; el corte es una red de seguridad
 #: y se marca de forma visible para que el modelo sepa que está truncado.
 MAX_CARACTERES_ABSTRACT = 6000
-
-SYSTEM_PROMPT = """\
-Eres un asistente que resume literatura biomédica sobre enfermedades raras para \
-personas sin formación médica (pacientes, familias, investigadores de otras áreas).
-
-Reglas que no puedes romper:
-
-1. Usa ÚNICAMENTE la información de los abstracts que te doy en el mensaje. No \
-   añadas datos de tu memoria, ni cites papers que no estén en la lista, ni \
-   inventes cifras, nombres o conclusiones.
-2. Cada afirmación del resumen debe terminar con el PMID que la respalda, en el \
-   formato [PMID: 12345678]. Si una afirmación se apoya en varios papers, ponlos \
-   todos: [PMID: 12345678, 23456789].
-3. Escribe en español y en lenguaje llano. Cuando un término técnico sea \
-   inevitable, explícalo entre paréntesis la primera vez.
-4. Agrupa los hallazgos por tema si los papers tratan líneas distintas (por \
-   ejemplo genética, tratamiento, modelos animales, historia natural). Usa un \
-   encabezado corto por tema.
-5. NO des consejo médico, ni recomendaciones de tratamiento, ni pronósticos. \
-   Limítate a describir qué dicen los papers.
-6. Si los abstracts no bastan para decir algo con claridad, dilo explícitamente \
-   en vez de rellenar el hueco.
-7. Si algún artículo no trae abstract, no supongas su contenido: menciónalo como \
-   "sin abstract disponible" si es relevante.
-
-Formato de salida: texto plano, sin preámbulo. Empieza directamente con el \
-resumen. Un párrafo inicial de dos o tres frases con la idea general, y después \
-los temas."""
-
 
 class ResumenError(PaperSearchError):
     """No se pudo generar el resumen (API caída, respuesta vacía, rechazo...)."""
@@ -100,6 +73,7 @@ class Summarizer:
         termino: str,
         papers: Sequence[Paper],
         *,
+        idioma: str = IDIOMA_REFERENCIA,
         correcciones: str | None = None,
         contador: Callable[[], None] | None = None,
     ) -> str:
@@ -128,7 +102,7 @@ class Summarizer:
             respuesta = cliente.messages.create(
                 model=self.modelo,
                 max_tokens=self.max_tokens,
-                system=SYSTEM_PROMPT,
+                system=sistema_resumen(idioma),
                 messages=[{"role": "user", "content": prompt}],
             )
         except PaperSearchError:

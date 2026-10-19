@@ -725,3 +725,75 @@ cita mixta puede tener un PMID enlazado y otro no.
 texto plano y las referencias ya llevaban su enlace. `exportar.py` no se ha tocado —lee
 `resultado.resumen`, que no se muta— y hay tests de no-regresión que comprueban que el texto
 exportado no contiene `<a ` ni `href=`. La CLI tampoco cambia: no usa `segmentar_resumen`.
+
+2026-09-08 — [paper-search] El resumen se genera en el idioma seleccionado, no solo la
+interfaz. La Fase 5.1 tradujo los botones y dejó el contenido en español: alguien con la
+interfaz en inglés recibía un resumen que no podía leer. El idioma viaja desde
+`buscar_y_resumir` hasta el resumidor, el verificador y la exportación.
+
+2026-09-08 — [paper-search] Los prompts NO viven en `i18n/*.json`, sino en un módulo nuevo
+`prompts.py`. Aquella es la fuente de las cadenas de interfaz y se compila al `messages.json`
+de la extensión de Chrome: un prompt de dos kilobytes acabaría empaquetado en la extensión y
+en manos de quien traduzca la interfaz. Un prompt no es una traducción, es un artefacto que se
+afina midiendo lo que responde el modelo.
+
+2026-09-08 — [paper-search] Solo se bifurca por idioma la PROSA de los prompts. El esquema de
+respuesta, los códigos de problema (`afirmacion_sin_pmid`, `consejo_medico`), la comprobación
+determinista de PMIDs y el `effort` siguen viviendo una sola vez en su módulo. Ese es el
+anclaje contra la desincronización: lo único que puede divergir es texto, y hay tests que
+comprueban que los dos idiomas declaran las mismas reglas (las siete del resumidor, las dos
+del verificador).
+
+2026-09-08 — [paper-search] El prompt del VERIFICADOR también se traduce, y no por cortesía:
+lleva ejemplos de la lengua. La regla «sin consejo médico» citaba «consulte», «se recomienda»
+— patrones que no aparecen en un resumen inglés, donde hay que cazar «consult your doctor» o
+«you should». Un verificador con los ejemplos equivocados sigue respondiendo, pero deja pasar
+lo que debía frenar: degrada un guardarraíl sin que se note.
+
+2026-09-08 — [paper-search] NO se añade una comprobación de que el resumen salió realmente en
+el idioma pedido. Descartado a propósito: sería una tercera llamada o una heurística de
+detección de idioma sobre texto biomédico lleno de términos ingleses, con falsos positivos que
+bloquearían resúmenes correctos. El prompt lo pide de forma explícita y el verificador es
+fail-closed en lo que sí importa (trazabilidad y consejo médico).
+
+2026-09-08 — [paper-search] La caché de resúmenes pasa a tener el idioma en su clave
+(migración v3). Sin él, un resumen español se serviría a quien pidió inglés, y encima
+pareciendo recién hecho: un fallo silencioso, que es la peor clase. Lo ya cacheado se marca
+`es`, y no es una suposición — se generó con el prompt español, que era el único que había.
+
+2026-09-08 — [paper-search] DESVIACIÓN de la opción aprobada para esa migración. Lo acordado
+era «tabla nueva, la vieja intacta». No funciona: `acciones.cache_id` tiene una clave ajena a
+`resumenes_cache`, así que una tabla con otro nombre dejaba esa FK apuntando a la vieja y
+CUALQUIER búsqueda que tocara la caché fallaba al escribir el registro (comprobado
+empíricamente: `IntegrityError: FOREIGN KEY constraint failed`). La v3 recrea la tabla
+CONSERVANDO EL NOMBRE y los `id`, y deja la anterior como `resumenes_cache_legacy`: no se
+destruye nada, y los `cache_id` ya registrados siguen resolviendo.
+
+2026-09-08 — [paper-search] Las migraciones se aplican con `PRAGMA foreign_keys = OFF`
+(restaurado en un `finally`), y al terminar se pasa `foreign_key_check`. Es el procedimiento
+que documenta SQLite, y aquí hacía falta de verdad: con las FK activas, `legacy_alter_table`
+no se honra y el renombrado reescribe la cláusula `REFERENCES` de `acciones` apuntándola a la
+tabla vieja — justo lo que se quería evitar. Si una migración rompiera la integridad, es mejor
+enterarse ahí que al primer INSERT.
+
+2026-09-08 — [paper-search] Se matiza la regla de re-ejecución de migraciones: reaplicar un
+script no debe hacer DAÑO, que no es lo mismo que no dar error. Las que solo crean (v1, v2) se
+reaplican limpias con `IF NOT EXISTS`; la v3 falla ruidosamente porque el destino del
+`ALTER TABLE RENAME` ya existe. Es deliberado: si en vez de fallar volviera a copiar desde la
+tabla vieja, forzaría a `es` los resúmenes que ya estuvieran en inglés. Un fallo se ve y se
+arregla; una fila en el idioma equivocado servida como buena, no.
+
+2026-09-08 — [paper-search] El aviso de no-diagnóstico se traduce y viaja en el
+`ResultadoBusqueda`, no como constante fija. Es contenido de cara al usuario y es una regla
+dura del proyecto: en inglés no puede salir en español ni desaparecer. La constante
+`AVISO_NO_DIAGNOSTICO` se queda como reserva para un resultado construido a mano.
+
+2026-09-08 — [paper-search] El andamiaje del texto exportado para NotebookLM también se
+traduce (12 claves `exp_doc_*`). Con el resumen en inglés y los encabezados en español salía
+un documento mestizo, y ese texto va a viajar fuera de aquí. Lo que NO cambia es el formato:
+citas en texto plano, sin HTML, y el aviso médico al final.
+
+2026-09-08 — [paper-search] La CLI recibe `--idioma {es,en}`, que cambia solo lo que genera el
+resumidor. La ayuda de argparse y los mensajes de la propia CLI siguen en español: traducirlos
+habría metido el sistema de i18n en el arranque de la CLI sin que nadie lo haya pedido, y el
+brief no lo cubre.

@@ -29,6 +29,7 @@ mismo resumen no coincidieran.
 
 from __future__ import annotations
 
+from .i18n import IDIOMA_REFERENCIA, traducir
 from .models import AVISO_NO_DIAGNOSTICO, ResultadoBusqueda
 
 #: Ancho de las líneas separadoras. Texto plano, sin Markdown: NotebookLM lo
@@ -36,9 +37,12 @@ from .models import AVISO_NO_DIAGNOSTICO, ResultadoBusqueda
 _REGLA = "=" * 60
 
 
-def _cabecera(resultado: ResultadoBusqueda) -> list[str]:
+def _cabecera(resultado: ResultadoBusqueda, idioma: str) -> list[str]:
     """Qué se buscó, campo a campo, para que la fuente se explique sola."""
-    lineas = ["BÚSQUEDA EN PUBMED — paper-search", _REGLA]
+    def t(clave, **valores):
+        return traducir(clave, idioma, **valores)
+
+    lineas = [t("exp_doc_titulo"), _REGLA]
 
     criterios = resultado.criterios
     termino = getattr(criterios, "termino", "") if criterios else ""
@@ -46,30 +50,33 @@ def _cabecera(resultado: ResultadoBusqueda) -> list[str]:
     patogeno = getattr(criterios, "patogeno", "") if criterios else ""
 
     if termino:
-        lineas.append(f"Término: {termino}")
+        lineas.append(t("exp_doc_termino", valor=termino))
     if autor:
-        lineas.append(f"Autor: {autor}")
+        lineas.append(t("exp_doc_autor", valor=autor))
     if patogeno:
-        lineas.append(f"Patógeno: {patogeno}")
+        lineas.append(t("exp_doc_patogeno", valor=patogeno))
     if not (termino or autor or patogeno):
         # Resultado construido sin criterios (uso como librería): al menos se
         # dice qué consulta se lanzó.
-        lineas.append(f"Término: {resultado.query}")
+        lineas.append(t("exp_doc_termino", valor=resultado.query))
     elif resultado.query and resultado.query != termino:
         # La consulta montada difiere de lo tecleado: se enseña, porque explica
         # por qué salieron estos artículos y no otros.
-        lineas.append(f"Consulta enviada a PubMed: {resultado.query}")
+        lineas.append(t("exp_doc_consulta", valor=resultado.query))
 
     if resultado.dias:
-        lineas.append(
-            f"Ventana: artículos de los últimos {resultado.dias} días"
-        )
-    lineas.append(f"Artículos recuperados: {resultado.total}")
+        lineas.append(t("exp_doc_ventana", dias=resultado.dias))
+    lineas.append(t("exp_doc_recuperados", total=resultado.total))
     return lineas
 
 
-def _referencias(resultado: ResultadoBusqueda) -> list[str]:
-    lineas = ["", _REGLA, f"REFERENCIAS ({resultado.total})", _REGLA]
+def _referencias(resultado: ResultadoBusqueda, idioma: str) -> list[str]:
+    lineas = [
+        "",
+        _REGLA,
+        traducir("exp_doc_referencias", idioma, total=resultado.total),
+        _REGLA,
+    ]
     for i, paper in enumerate(resultado.papers, start=1):
         lineas.append(f"[{i}] {paper.titulo}")
         detalle = " · ".join(
@@ -84,30 +91,28 @@ def _referencias(resultado: ResultadoBusqueda) -> list[str]:
     return lineas
 
 
-def texto_para_notebooklm(resultado: ResultadoBusqueda) -> str:
+def texto_para_notebooklm(
+    resultado: ResultadoBusqueda, idioma: str = IDIOMA_REFERENCIA
+) -> str:
     """Devuelve el resultado como texto plano listo para pegar como fuente.
 
     Incluye siempre el término buscado, el resumen (o el motivo de que no lo
     haya), las referencias con PMID y enlace, y el aviso de no diagnóstico.
     Nunca incluye marcado de la página ni metadatos de caché.
     """
-    lineas = _cabecera(resultado)
+    lineas = _cabecera(resultado, idioma)
 
-    lineas += ["", _REGLA, "RESUMEN", _REGLA]
+    lineas += ["", _REGLA, traducir("exp_doc_resumen", idioma), _REGLA]
     if resultado.resumen:
         lineas.append(resultado.resumen)
     elif resultado.error_resumen:
         # Se exporta igual: las referencias son reales y valen como fuente. Lo
         # que no se hace nunca es dejar el hueco sin explicar.
         lineas.append(
-            "No se generó resumen para esta búsqueda. Motivo: "
-            f"{resultado.error_resumen}"
+            traducir("exp_doc_sin_resumen_motivo", idioma, motivo=resultado.error_resumen)
         )
     else:
-        lineas.append(
-            "No se generó resumen para esta búsqueda. Las referencias de abajo "
-            "vienen directamente de PubMed."
-        )
+        lineas.append(traducir("exp_doc_sin_resumen", idioma))
 
     if resultado.aviso_alcance:
         lineas += ["", "AVISO DE ALCANCE: " + resultado.aviso_alcance]
@@ -115,8 +120,16 @@ def texto_para_notebooklm(resultado: ResultadoBusqueda) -> str:
         lineas += ["", "AVISO DE IDIOMA: " + resultado.aviso_idioma]
 
     if resultado.papers:
-        lineas += _referencias(resultado)
+        lineas += _referencias(resultado, idioma)
 
-    lineas += ["", _REGLA, "AVISO", _REGLA, resultado.aviso or AVISO_NO_DIAGNOSTICO]
+    # El aviso llega ya traducido en el resultado; la constante es la reserva
+    # para un `ResultadoBusqueda` construido a mano sin pasar por la búsqueda.
+    lineas += [
+        "",
+        _REGLA,
+        traducir("exp_doc_aviso", idioma),
+        _REGLA,
+        resultado.aviso or traducir("comun_aviso_no_diagnostico", idioma),
+    ]
 
     return "\n".join(lineas).strip() + "\n"

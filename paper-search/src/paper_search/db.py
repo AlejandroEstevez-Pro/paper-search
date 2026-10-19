@@ -8,8 +8,10 @@ del usuario, no parte del repo.
 Migraciones: `MIGRACIONES` es una lista ordenada de scripts SQL; la posición
 i-ésima lleva el esquema a la versión i+1. Al abrir la conexión se aplican las
 pendientes según la tabla `esquema_version`. Cada script debe poder
-re-ejecutarse sin daño (`IF NOT EXISTS`) por si una aplicación anterior quedó a
-medias. Para evolucionar el esquema (favoritos en Fase 3, etc.) basta con
+re-ejecutarse SIN DAÑO por si una aplicación anterior quedó a medias — que no
+es lo mismo que sin error: los que solo crean lo consiguen con `IF NOT EXISTS`,
+y los que recrean una tabla (v3) fallan ruidosamente al reaplicarse, que es
+preferible a corromper datos en silencio. Para evolucionar el esquema basta con
 añadir un script nuevo al final de la lista, nunca editar los anteriores.
 
 Este módulo no sabe nada de PubMed ni de Claude: solo conexión y esquema. La
@@ -106,8 +108,58 @@ CREATE TABLE IF NOT EXISTS favoritos (
 CREATE INDEX IF NOT EXISTS idx_favoritos_creado_en ON favoritos (creado_en);
 """
 
+MIGRACION_V3 = """
+-- La clave de la caché de resúmenes pasa a incluir el idioma: sin él, un
+-- resumen en español se serviría a quien pidió inglés, y encima pareciendo
+-- recién hecho.
+--
+-- El `UNIQUE (termino_normalizado, pmids_hash)` de la v1 va declarado dentro
+-- del CREATE TABLE, y SQLite no deja quitarlo sin recrear la tabla. Se recrea
+-- CONSERVANDO EL NOMBRE, y eso no es cosmético: `acciones.cache_id` tiene una
+-- clave ajena a `resumenes_cache`, así que una tabla con otro nombre habría
+-- dejado esa FK apuntando a la vieja y CUALQUIER búsqueda que tocara la caché
+-- fallaría al escribir el registro.
+--
+-- `legacy_alter_table = ON` es lo que hace que el renombrado NO reescriba esa
+-- FK en `acciones`: la referencia se queda apuntando al nombre, que es el que
+-- va a llevar la tabla nueva. Sin este pragma, SQLite 3.25+ la reescribiría a
+-- `resumenes_cache_legacy` y pasaría justo lo que se quiere evitar.
+--
+-- Se conservan los `id` para que los `cache_id` ya registrados en `acciones`
+-- sigan resolviendo, y la tabla vieja se queda como `resumenes_cache_legacy`:
+-- no se destruye nada. Si esta migración se interrumpiera a medias, una
+-- segunda pasada falla en el ALTER —porque el destino ya existe— en vez de
+-- copiar las filas inglesas como españolas: falla ruidosa antes que corromper.
+--
+-- Lo ya cacheado se marca 'es', y no es una suposición: se generó con el
+-- prompt en español, que era el único que había.
+
+PRAGMA legacy_alter_table = ON;
+
+ALTER TABLE resumenes_cache RENAME TO resumenes_cache_legacy;
+
+CREATE TABLE resumenes_cache (
+    id INTEGER PRIMARY KEY,
+    termino_normalizado TEXT NOT NULL,
+    pmids_hash TEXT NOT NULL,
+    pmids TEXT NOT NULL,
+    idioma TEXT NOT NULL,
+    resumen TEXT NOT NULL,
+    modelo TEXT NOT NULL,
+    creado_en TEXT NOT NULL,
+    UNIQUE (termino_normalizado, pmids_hash, idioma)
+);
+
+INSERT INTO resumenes_cache
+    (id, termino_normalizado, pmids_hash, pmids, idioma, resumen, modelo, creado_en)
+SELECT id, termino_normalizado, pmids_hash, pmids, 'es', resumen, modelo, creado_en
+FROM resumenes_cache_legacy;
+
+PRAGMA legacy_alter_table = OFF;
+"""
+
 #: Scripts de migración en orden. MIGRACIONES[i] lleva a la versión i+1.
-MIGRACIONES: list[str] = [MIGRACION_V1, MIGRACION_V2]
+MIGRACIONES: list[str] = [MIGRACION_V1, MIGRACION_V2, MIGRACION_V3]
 
 
 def ruta_db_por_defecto() -> Path:
@@ -163,16 +215,41 @@ def version_esquema(conn: sqlite3.Connection) -> int:
 
 
 def aplicar_migraciones(conn: sqlite3.Connection) -> int:
-    """Aplica los scripts pendientes en orden. Devuelve la versión final."""
+    """Aplica los scripts pendientes en orden. Devuelve la versión final.
+
+    Las claves ajenas se desactivan mientras se migra y se vuelven a activar al
+    terminar. Es el procedimiento que documenta SQLite para cambios de esquema,
+    y aquí hace falta de verdad: con `foreign_keys = ON`, renombrar una tabla
+    reescribe las cláusulas `REFERENCES` que apuntan a ella, así que la v3
+    dejaba la FK de `acciones.cache_id` apuntando a la tabla vieja y cualquier
+    búsqueda que tocara la caché fallaba al escribir el registro.
+
+    Al reactivarlas se pasa `foreign_key_check`: si una migración hubiera roto
+    la integridad, es mejor enterarse aquí que al primer INSERT.
+    """
     actual = version_esquema(conn)
-    for indice in range(actual, len(MIGRACIONES)):
-        version = indice + 1
-        conn.executescript(MIGRACIONES[indice])
-        conn.execute(
-            "INSERT INTO esquema_version (version, aplicada_en) VALUES (?, ?)",
-            (version, ahora_utc_iso()),
+    if actual >= len(MIGRACIONES):
+        return actual
+
+    conn.execute("PRAGMA foreign_keys = OFF")
+    try:
+        for indice in range(actual, len(MIGRACIONES)):
+            version = indice + 1
+            conn.executescript(MIGRACIONES[indice])
+            conn.execute(
+                "INSERT INTO esquema_version (version, aplicada_en) VALUES (?, ?)",
+                (version, ahora_utc_iso()),
+            )
+            conn.commit()
+    finally:
+        conn.execute("PRAGMA foreign_keys = ON")
+
+    rotas = conn.execute("PRAGMA foreign_key_check").fetchall()
+    if rotas:
+        raise sqlite3.IntegrityError(
+            f"la migración dejó {len(rotas)} referencia(s) rota(s); "
+            f"la primera en la tabla «{rotas[0][0]}»"
         )
-        conn.commit()
     return version_esquema(conn)
 
 

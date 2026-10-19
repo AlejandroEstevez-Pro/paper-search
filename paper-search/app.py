@@ -388,7 +388,7 @@ def buscar():
             resultado.resumen or "", [p.pmid for p in resultado.papers]
         ),
         favoritos=marcados,
-        texto_exportado=texto_para_notebooklm(resultado),
+        texto_exportado=texto_para_notebooklm(resultado, idioma),
         **contexto,
     )
 

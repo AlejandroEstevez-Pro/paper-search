@@ -26,6 +26,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
+from .i18n import IDIOMA_REFERENCIA, normalizar_idioma
 from .alcance import NO_CONCLUYENTE, VeredictoAlcance
 from .db import ahora_utc_iso
 
@@ -96,12 +97,22 @@ class CacheResumenes:
         self.ttl_dias = ttl_dias if ttl_dias is not None else ttl_dias_configurado()
         self._ahora = ahora
 
-    def buscar(self, termino: str, pmids: Sequence[str]) -> ResumenCacheado | None:
-        """Resumen cacheado y vigente para este término y estos PMIDs, o None."""
+    def buscar(
+        self,
+        termino: str,
+        pmids: Sequence[str],
+        idioma: str = IDIOMA_REFERENCIA,
+    ) -> ResumenCacheado | None:
+        """Resumen cacheado y vigente para término, PMIDs e idioma, o None.
+
+        El idioma forma parte de la clave desde la migración v3: sin él, un
+        resumen generado en español se serviría a quien pide inglés, y encima
+        pareciendo recién hecho.
+        """
         fila = self.conn.execute(
             "SELECT id, resumen, modelo, creado_en FROM resumenes_cache "
-            "WHERE termino_normalizado = ? AND pmids_hash = ?",
-            (normalizar_termino(termino), hash_pmids(pmids)),
+            "WHERE termino_normalizado = ? AND pmids_hash = ? AND idioma = ?",
+            (normalizar_termino(termino), hash_pmids(pmids), normalizar_idioma(idioma)),
         ).fetchone()
         if fila is None:
             return None
@@ -115,30 +126,33 @@ class CacheResumenes:
         )
 
     def guardar(
-        self, termino: str, pmids: Sequence[str], resumen: str, modelo: str
+        self,
+        termino: str,
+        pmids: Sequence[str],
+        resumen: str,
+        modelo: str,
+        idioma: str = IDIOMA_REFERENCIA,
     ) -> int:
         """Guarda (o renueva) el resumen y devuelve el id de la fila."""
+        clave = (
+            normalizar_termino(termino),
+            hash_pmids(pmids),
+            normalizar_idioma(idioma),
+        )
         with self.conn:
             self.conn.execute(
                 "INSERT INTO resumenes_cache "
-                "(termino_normalizado, pmids_hash, pmids, resumen, modelo, creado_en) "
-                "VALUES (?, ?, ?, ?, ?, ?) "
-                "ON CONFLICT (termino_normalizado, pmids_hash) DO UPDATE SET "
+                "(termino_normalizado, pmids_hash, idioma, pmids, resumen, modelo, creado_en) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT (termino_normalizado, pmids_hash, idioma) DO UPDATE SET "
                 "pmids = excluded.pmids, resumen = excluded.resumen, "
                 "modelo = excluded.modelo, creado_en = excluded.creado_en",
-                (
-                    normalizar_termino(termino),
-                    hash_pmids(pmids),
-                    json.dumps(list(pmids)),
-                    resumen,
-                    modelo,
-                    ahora_utc_iso(),
-                ),
+                (*clave, json.dumps(list(pmids)), resumen, modelo, ahora_utc_iso()),
             )
         fila = self.conn.execute(
             "SELECT id FROM resumenes_cache "
-            "WHERE termino_normalizado = ? AND pmids_hash = ?",
-            (normalizar_termino(termino), hash_pmids(pmids)),
+            "WHERE termino_normalizado = ? AND pmids_hash = ? AND idioma = ?",
+            clave,
         ).fetchone()
         return fila["id"]
 

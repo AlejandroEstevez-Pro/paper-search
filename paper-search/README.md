@@ -99,6 +99,7 @@ python cli.py buscar "SCN1A" --orden relevancia
 | `--max` | 15 | Número máximo de papers a traer |
 | `--dias` | 730 | Ventana de "recientes", en días |
 | `--orden` | `fecha` | `fecha` (más recientes primero) o `relevancia` |
+| `--idioma` | `es` | Idioma del **resumen** (`es` o `en`). La ayuda y los mensajes de la CLI siguen en español |
 | `--formato` | `texto` | `texto` (resumen + referencias) o `json` |
 | `--forzar` | off | Regenera el resumen ignorando la caché local |
 
@@ -239,7 +240,18 @@ La web está en español e inglés. Se cambia con el conmutador de la cabecera
 (`?idioma=en`) y la elección se recuerda en una cookie, así que sobrevive a las
 búsquedas (que son POST) y a la vista de favoritos (que redirige).
 
-Todos los textos viven en **una sola fuente**, `paper-search/i18n/`:
+El idioma no es solo de la interfaz: **el resumen se genera en el idioma
+elegido**, el verificador lo revisa con las reglas de esa lengua, el aviso de no
+diagnóstico sale traducido y el texto exportado para NotebookLM también. La
+caché lleva el idioma en su clave, así que un resumen español no se sirve nunca
+a quien pidió inglés (ni al revés). En la CLI se elige con `--idioma`.
+
+Los prompts del resumidor y del verificador **no** están en `i18n/`, sino en
+[`src/paper_search/prompts.py`](src/paper_search/prompts.py): esa carpeta se
+compila al `messages.json` de la extensión de Chrome, y un prompt acabaría
+empaquetado ahí. Un prompt no es una cadena de interfaz.
+
+Todos los textos de interfaz viven en **una sola fuente**, `paper-search/i18n/`:
 
 ```
 i18n/

@@ -92,5 +92,17 @@
   "ext_popup_intro": "Selecciona un gen o síndrome en cualquier página y usa el botón derecho, o escríbelo aquí.",
   "ext_estado_comprobando": "Comprobando si paper-search está en marcha…",
   "ext_estado_vivo": "paper-search está en marcha",
-  "ext_sin_termino": "Escribe un término, o selecciónalo en una página y usa el botón derecho."
+  "ext_sin_termino": "Escribe un término, o selecciónalo en una página y usa el botón derecho.",
+  "exp_doc_titulo": "BÚSQUEDA EN PUBMED — paper-search",
+  "exp_doc_termino": "Término: $valor$",
+  "exp_doc_autor": "Autor: $valor$",
+  "exp_doc_patogeno": "Patógeno: $valor$",
+  "exp_doc_consulta": "Consulta enviada a PubMed: $valor$",
+  "exp_doc_ventana": "Ventana: artículos de los últimos $dias$ días",
+  "exp_doc_recuperados": "Artículos recuperados: $total$",
+  "exp_doc_resumen": "RESUMEN",
+  "exp_doc_referencias": "REFERENCIAS ($total$)",
+  "exp_doc_aviso": "AVISO",
+  "exp_doc_sin_resumen_motivo": "No se generó resumen para esta búsqueda. Motivo: $motivo$",
+  "exp_doc_sin_resumen": "No se generó resumen para esta búsqueda. Las referencias de abajo vienen directamente de PubMed."
 }

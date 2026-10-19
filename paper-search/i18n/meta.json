@@ -174,5 +174,65 @@
   },
   "ext_sin_termino": {
     "descripcion": "Se pulso buscar con el campo vacio."
+  },
+  "exp_doc_titulo": {
+    "descripcion": "Cabecera del texto que se exporta a NotebookLM."
+  },
+  "exp_doc_termino": {
+    "descripcion": "Término buscado, en la cabecera del texto exportado.",
+    "placeholders": [
+      "valor"
+    ]
+  },
+  "exp_doc_autor": {
+    "descripcion": "Autor, en la cabecera del texto exportado.",
+    "placeholders": [
+      "valor"
+    ]
+  },
+  "exp_doc_patogeno": {
+    "descripcion": "Patógeno, en la cabecera del texto exportado.",
+    "placeholders": [
+      "valor"
+    ]
+  },
+  "exp_doc_consulta": {
+    "descripcion": "Consulta ya montada que se mandó a PubMed. Explica por qué salieron esos artículos.",
+    "placeholders": [
+      "valor"
+    ]
+  },
+  "exp_doc_ventana": {
+    "descripcion": "Ventana temporal de la búsqueda, en el texto exportado.",
+    "placeholders": [
+      "dias"
+    ]
+  },
+  "exp_doc_recuperados": {
+    "descripcion": "Cuántos artículos trajo la búsqueda.",
+    "placeholders": [
+      "total"
+    ]
+  },
+  "exp_doc_resumen": {
+    "descripcion": "Encabezado de sección del texto exportado. En mayúsculas."
+  },
+  "exp_doc_referencias": {
+    "descripcion": "Encabezado de sección del texto exportado, con cuántas hay.",
+    "placeholders": [
+      "total"
+    ]
+  },
+  "exp_doc_aviso": {
+    "descripcion": "Encabezado de la sección del aviso médico en el texto exportado."
+  },
+  "exp_doc_sin_resumen_motivo": {
+    "descripcion": "Se exporta igual aunque no haya resumen: las referencias son reales.",
+    "placeholders": [
+      "motivo"
+    ]
+  },
+  "exp_doc_sin_resumen": {
+    "descripcion": "No hubo resumen y no consta el motivo."
   }
 }

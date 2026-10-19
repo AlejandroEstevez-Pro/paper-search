@@ -24,6 +24,8 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
     DIAS_POR_DEFECTO,
     MAX_RESULTADOS_POR_DEFECTO,
     MENSAJE_FALTA_API_KEY,
+    IDIOMA_REFERENCIA,
+    IDIOMAS,
     ORDEN_POR_DEFECTO,
     ORDENES,
     BaseDatosError,
@@ -104,6 +106,16 @@ def construir_parser() -> argparse.ArgumentParser:
             f"Criterio de ordenación de los resultados (por defecto "
             f"{ORDEN_POR_DEFECTO}). Se aplica en local: no cambia qué "
             f"artículos trae la búsqueda ni gasta llamadas de más."
+        ),
+    )
+    buscar.add_argument(
+        "--idioma",
+        choices=IDIOMAS,
+        default=IDIOMA_REFERENCIA,
+        help=(
+            f"Idioma del RESUMEN (por defecto {IDIOMA_REFERENCIA}). La ayuda y "
+            f"los mensajes de esta CLI siguen en español; lo que cambia es el "
+            f"texto que genera el resumidor."
         ),
     )
     buscar.add_argument(
@@ -209,6 +221,7 @@ def comando_buscar(args: argparse.Namespace, parser: argparse.ArgumentParser) ->
             max_resultados=args.max_resultados,
             dias=args.dias,
             orden=args.orden,
+            idioma=args.idioma,
             resumir=not sin_clave,
             verificar_alcance=not sin_clave,
             db=db,

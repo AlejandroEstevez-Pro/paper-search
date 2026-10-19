@@ -62,14 +62,44 @@ def test_la_tabla_favoritos_existe_con_sus_columnas(db):
     assert columnas == {"pmid", "nota", "creado_en", "actualizado_en"}
 
 
-def test_las_migraciones_son_reejecutables(db):
-    """El patrón del repo: cada script debe poder reaplicarse sin daño."""
-    from paper_search.db import aplicar_migraciones
+def test_los_scripts_de_creacion_son_reejecutables(db):
+    """El patrón del repo: reaplicar un script no debe hacer daño.
 
-    for script in MIGRACIONES:
+    Las migraciones que solo CREAN (v1, v2) se reaplican limpiamente gracias a
+    los `IF NOT EXISTS`. La v3 no puede: recrea una tabla y su `ALTER TABLE
+    RENAME` falla si el destino ya existe. Eso es deliberado —falla ruidosa
+    antes que corromper datos— y tiene su propio test justo debajo.
+    """
+    from paper_search.db import MIGRACION_V1, MIGRACION_V2, aplicar_migraciones
+
+    for script in (MIGRACION_V1, MIGRACION_V2):
         db.executescript(script)
 
     assert aplicar_migraciones(db) == len(MIGRACIONES)
+
+
+def test_reaplicar_la_v3_falla_pero_no_toca_los_datos(db):
+    """Reejecutar la v3 sobre una BD ya migrada tiene que fallar, no corromper.
+
+    Si en vez de fallar copiara otra vez desde la tabla vieja, forzaría a `es`
+    los resúmenes que ya estuvieran en inglés. Se prefiere que reviente: un
+    fallo se ve y se arregla; una fila en el idioma equivocado servida como
+    buena, no.
+    """
+    import sqlite3
+
+    from paper_search.cache import CacheResumenes
+    from paper_search.db import MIGRACION_V3
+
+    cache = CacheResumenes(db)
+    cache.guardar("SCN1A", ["1"], "English summary", "modelo", "en")
+
+    with pytest.raises(sqlite3.OperationalError):
+        db.executescript(MIGRACION_V3)
+
+    # El resumen inglés sigue siendo inglés.
+    assert cache.buscar("SCN1A", ["1"], "en").resumen == "English summary"
+    assert cache.buscar("SCN1A", ["1"], "es") is None
 
 
 # ------------------------------------------------------------ marcar/desmarcar

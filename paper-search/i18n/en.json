@@ -92,5 +92,17 @@
   "ext_popup_intro": "Select a gene or syndrome on any page and right-click, or type it here.",
   "ext_estado_comprobando": "Checking whether paper-search is running…",
   "ext_estado_vivo": "paper-search is running",
-  "ext_sin_termino": "Type a term, or select it on a page and right-click."
+  "ext_sin_termino": "Type a term, or select it on a page and right-click.",
+  "exp_doc_titulo": "PUBMED SEARCH — paper-search",
+  "exp_doc_termino": "Term: $valor$",
+  "exp_doc_autor": "Author: $valor$",
+  "exp_doc_patogeno": "Pathogen: $valor$",
+  "exp_doc_consulta": "Query sent to PubMed: $valor$",
+  "exp_doc_ventana": "Window: articles from the last $dias$ days",
+  "exp_doc_recuperados": "Articles retrieved: $total$",
+  "exp_doc_resumen": "SUMMARY",
+  "exp_doc_referencias": "REFERENCES ($total$)",
+  "exp_doc_aviso": "NOTICE",
+  "exp_doc_sin_resumen_motivo": "No summary was generated for this search. Reason: $motivo$",
+  "exp_doc_sin_resumen": "No summary was generated for this search. The references below come straight from PubMed."
 }

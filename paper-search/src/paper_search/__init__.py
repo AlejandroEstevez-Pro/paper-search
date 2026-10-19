@@ -328,6 +328,7 @@ def buscar_y_resumir(
             papers=papers_mostrados,
             orden=orden,
             criterios=criterios,
+            aviso=traducir("comun_aviso_no_diagnostico", idioma),
             dias=dias,
             aviso_alcance=aviso_alcance,
             aviso_idioma=aviso_idioma,
@@ -337,7 +338,7 @@ def buscar_y_resumir(
     cache_resumenes = CacheResumenes(db) if db is not None else None
 
     if cache_resumenes is not None and not forzar:
-        cacheado = cache_resumenes.buscar(consulta, pmids)
+        cacheado = cache_resumenes.buscar(consulta, pmids, idioma)
         if cacheado is not None:
             _registrar(
                 RESULTADO_EXITO,
@@ -350,6 +351,7 @@ def buscar_y_resumir(
                 papers=papers_mostrados,
                 orden=orden,
                 criterios=criterios,
+                aviso=traducir("comun_aviso_no_diagnostico", idioma),
                 resumen=cacheado.resumen,
                 dias=dias,
                 aviso_alcance=aviso_alcance,
@@ -366,10 +368,13 @@ def buscar_y_resumir(
                 papers,
                 summarizer=summarizer,
                 verificador=verificador_resumen,
+                idioma=idioma,
                 contador=_contar,
             )
         else:
-            resumen = summarizer.resumir(sujeto or consulta, papers, contador=_contar)
+            resumen = summarizer.resumir(
+                sujeto or consulta, papers, idioma=idioma, contador=_contar
+            )
     except ResumenError as exc:
         _registrar(RESULTADO_ERROR_RESUMEN, detalle=str(exc), pmids_lista=pmids)
         return ResultadoBusqueda(
@@ -377,6 +382,7 @@ def buscar_y_resumir(
             papers=papers_mostrados,
             orden=orden,
             criterios=criterios,
+            aviso=traducir("comun_aviso_no_diagnostico", idioma),
             dias=dias,
             error_resumen=str(exc),
             aviso_alcance=aviso_alcance,
@@ -388,7 +394,7 @@ def buscar_y_resumir(
     cache_id = None
     if cache_resumenes is not None and verificar_resumen:
         cache_id = cache_resumenes.guardar(
-            consulta, pmids, resumen, summarizer.modelo
+            consulta, pmids, resumen, summarizer.modelo, idioma
         )
 
     _registrar(RESULTADO_EXITO, pmids_lista=pmids, cache_id=cache_id)
@@ -397,6 +403,7 @@ def buscar_y_resumir(
         papers=papers_mostrados,
         orden=orden,
         criterios=criterios,
+        aviso=traducir("comun_aviso_no_diagnostico", idioma),
         resumen=resumen,
         dias=dias,
         aviso_alcance=aviso_alcance,

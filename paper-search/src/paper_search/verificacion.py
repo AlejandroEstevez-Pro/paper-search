@@ -31,7 +31,9 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from .i18n import IDIOMA_REFERENCIA
 from .models import PATRON_CITA, Paper, PaperSearchError
+from .prompts import cabecera_correcciones, sistema_verificacion
 from .summarizer import (
     MODELO_POR_DEFECTO,
     FaltaAPIKeyError,
@@ -56,25 +58,9 @@ NO_CONCLUYENTE = "no_concluyente"
 #: Caracteres del fragmento problemático que se citan en mensajes y feedback.
 MAX_CARACTERES_FRAGMENTO = 160
 
-SYSTEM_PROMPT = """\
-Eres un verificador de calidad para resúmenes de literatura biomédica dirigidos
-a personas sin formación médica. Recibirás un resumen y la lista de PMIDs de
-los artículos reales en los que debe basarse. Comprueba dos cosas:
-
-1. TRAZABILIDAD: toda afirmación clínica o factual (hallazgos, cifras,
-   asociaciones gen-enfermedad, resultados de estudios) debe ir seguida de una
-   cita [PMID: ...] cuyo número esté en la lista de PMIDs válidos. Frases de
-   transición, encabezados y la advertencia de que faltan datos no necesitan
-   cita.
-2. SIN CONSEJO MÉDICO: el resumen no debe contener recomendaciones dirigidas
-   al lector (tomar/evitar tratamientos, dosis, "consulte", "se recomienda",
-   pronósticos personales...). Describir qué dicen los papers sobre un
-   tratamiento SÍ está permitido; recomendárselo al lector NO.
-
-Sé estricto con estas dos reglas y no señales ningún otro tipo de problema
-(estilo, longitud, orden...). Responde únicamente con el JSON pedido."""
-
-#: Tipos de problema que puede señalar el modelo.
+#: Códigos que puede emitir el modelo. NO dependen del idioma: el prompt
+#: cambia de lengua, pero los códigos con los que responde son los mismos, y
+#: eso es lo que mantiene alineadas las dos versiones en lo que importa.
 TIPOS_DEL_MODELO = ("afirmacion_sin_pmid", "consejo_medico")
 
 ESQUEMA_RESPUESTA = {
@@ -152,9 +138,15 @@ class VerificadorResumen:
         resumen: str,
         pmids_validos: Sequence[str],
         *,
+        idioma: str = IDIOMA_REFERENCIA,
         contador: Callable[[], None] | None = None,
     ) -> ResultadoVerificacion:
         """Verifica `resumen` contra la lista real de PMIDs.
+
+        `idioma` es el del RESUMEN que se evalúa, y elige el prompt: uno en
+        español revisando un texto inglés busca patrones («consulte», «se
+        recomienda») que ahí no existen, y deja pasar el consejo médico que
+        debía frenar.
 
         `contador` (si se pasa) se invoca una vez por llamada real a la API —
         es el gancho del límite diario de llamadas (ver `limites.py`).
@@ -175,7 +167,7 @@ class VerificadorResumen:
             respuesta = cliente.messages.create(
                 model=self.modelo,
                 max_tokens=self.max_tokens,
-                system=SYSTEM_PROMPT,
+                system=sistema_verificacion(idioma),
                 # Revisión acotada a dos reglas: no necesita razonamiento
                 # profundo, y así la respuesta llega dentro del timeout.
                 output_config={
@@ -250,6 +242,7 @@ def resumir_con_verificacion(
     *,
     summarizer: Summarizer,
     verificador: VerificadorResumen,
+    idioma: str = IDIOMA_REFERENCIA,
     max_intentos: int = MAX_INTENTOS,
     contador: Callable[[], None] | None = None,
 ) -> str:
@@ -265,16 +258,24 @@ def resumir_con_verificacion(
     problemas: tuple[Problema, ...] = ()
 
     for _intento in range(max_intentos):
-        correcciones = _formatear_correcciones(problemas) if problemas else None
+        correcciones = (
+            _formatear_correcciones(problemas, idioma) if problemas else None
+        )
         resumen = summarizer.resumir(
-            termino, papers, correcciones=correcciones, contador=contador
+            termino,
+            papers,
+            idioma=idioma,
+            correcciones=correcciones,
+            contador=contador,
         )
 
         problemas = problemas_deterministas(resumen, pmids)
         if problemas:
             continue
 
-        resultado = verificador.verificar(resumen, pmids, contador=contador)
+        resultado = verificador.verificar(
+            resumen, pmids, idioma=idioma, contador=contador
+        )
         if resultado.estado == APROBADO:
             return resumen
         if resultado.estado == NO_CONCLUYENTE:
@@ -344,12 +345,11 @@ def _interpretar_respuesta(respuesta: Any) -> ResultadoVerificacion:
     return ResultadoVerificacion(estado=RECHAZADO, problemas=problemas)
 
 
-def _formatear_correcciones(problemas: Sequence[Problema]) -> str:
-    lineas = [
-        "Un verificador automático rechazó el intento anterior de este resumen "
-        "por los problemas siguientes. Corrígelos sin introducir información "
-        "nueva ni citas que no estén en los artículos de arriba:"
-    ]
+def _formatear_correcciones(
+    problemas: Sequence[Problema], idioma: str = IDIOMA_REFERENCIA
+) -> str:
+    """Feedback para regenerar. Va al prompt del resumidor, así que en su idioma."""
+    lineas = [cabecera_correcciones(idioma)]
     lineas.extend(
         f"- [{p.tipo}] «{p.fragmento}»: {p.detalle}" for p in problemas
     )
