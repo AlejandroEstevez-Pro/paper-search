@@ -6,10 +6,54 @@ Buscador/resumidor de papers de PubMed por gen o síndrome **relacionado con
 enfermedades raras**. Genera un resumen en lenguaje llano de los hallazgos
 recientes, siempre con trazabilidad a los PMIDs originales.
 
-> **No es una herramienta de diagnóstico ni de asesoramiento médico.** Es una
-> ayuda de búsqueda y síntesis bibliográfica. El resumen se limita a describir
-> qué dicen los papers recuperados, cada afirmación lleva detrás el PMID que la
-> respalda, y siempre conviene verificar en el paper original.
+## Antes de usarlo
+
+> **paper-search no es una herramienta de diagnóstico ni sustituye el criterio
+> médico.** Ayuda a encontrar y leer artículos científicos. No puede decir si
+> alguien tiene una enfermedad, qué tratamiento seguir ni qué cabe esperar. No
+> tomes decisiones de salud basándote en lo que diga; lleva tus preguntas a un
+> profesional sanitario.
+
+**Los resúmenes los escribe un modelo de lenguaje.** Se verifican
+automáticamente antes de mostrarse, pero la verificación no es infalible: un
+resumen puede superar todas las comprobaciones y aun así deformar lo que dice
+un artículo.
+
+Esto es lo que cubren de verdad las comprobaciones:
+
+**Garantizado por código (exacto, siempre)**
+- Todo PMID citado en el resumen pertenece a un artículo recuperado en esta
+  búsqueda: no puede citar un paper inexistente o que no se haya recuperado.
+- El resumen cita al menos un PMID.
+- No se muestra ningún resumen cuya verificación no haya terminado y lo haya
+  aprobado. Si el verificador no está disponible, salen las referencias y no
+  el resumen.
+
+**Comprobado por un segundo modelo (suele acertar, pero puede fallar)**
+- Toda afirmación clínica lleva su cita.
+- El texto no da consejo médico dirigido al lector.
+- El término de búsqueda entra en el ámbito de las enfermedades raras. Si esta
+  comprobación no puede ejecutarse, la búsqueda sigue igualmente, con un
+  aviso.
+
+**Sin comprobar**
+- **Que el paper citado respalde de verdad la afirmación.** El verificador ve
+  el resumen y la lista de PMIDs válidos, no los abstracts. Un PMID real puede
+  acabar pegado a algo que ese paper no dice, y una afirmación correcta puede
+  salir exagerada, con una cifra equivocada o sin sus matices.
+- **Lo que no esté en el abstract.** El modelo lee solo el título, los
+  metadatos y el abstract de cada paper, nunca el texto completo. Métodos,
+  limitaciones y resultados que no estén en el abstract no los ve, y un paper
+  sin abstract no aporta casi nada.
+- **La calidad de la evidencia.** No se evalúa el diseño del estudio, el
+  tamaño de la muestra, las retractaciones, los conflictos de interés ni si se
+  ha replicado: un caso clínico aislado y un ensayo aleatorizado pesan igual.
+- **La exhaustividad.** Por defecto salen hasta 15 papers de los dos últimos
+  años, ordenados por relevancia de PubMed. No es una revisión sistemática y
+  puede faltar trabajo importante.
+
+Usa cada resumen como guía de qué leer, y abre el paper citado antes de fiarte
+de cualquier afirmación.
 
 El alcance está restringido: un clasificador comprueba antes de buscar que el
 término es plausible como gen o síndrome de enfermedades raras, y cada resumen

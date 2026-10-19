@@ -6,9 +6,52 @@ Search PubMed for a rare-disease gene or syndrome and get a plain-language
 summary of the recent literature, where every statement is cited to the
 PubMed article (PMID) it comes from.
 
-> **This is not a diagnostic tool and does not give medical advice.** It is a
-> literature search aid: the summary only describes what the retrieved papers
-> say, and every statement should be checked against the original paper.
+## Before you use it
+
+> **paper-search is not a diagnostic tool and does not replace medical
+> judgement.** It helps you find and read research papers. It cannot tell you
+> whether someone has a condition, which treatment to follow or what to
+> expect. Do not make health decisions based on what it says; take your
+> questions to a qualified clinician.
+
+**The summaries are written by a language model.** They are checked
+automatically before they are shown, but the checks are not infallible. A
+summary can pass every check and still misstate what a paper says.
+
+This is what the checks actually cover:
+
+**Guaranteed by code (exact, every time)**
+- Every PMID cited in the summary belongs to an article retrieved in this
+  search. The summary cannot cite a paper that does not exist or was not
+  retrieved.
+- The summary cites at least one PMID.
+- No summary is shown unless its verification completed and approved it. If
+  the verifier is unavailable, you get the references and no summary.
+
+**Checked by a second model (usually right, but can miss things)**
+- Every clinical statement carries a citation.
+- The text gives no medical advice addressed to the reader.
+- The search term is within the scope of rare diseases. If this check cannot
+  run, the search goes ahead anyway, with a warning.
+
+**Not checked at all**
+- **Whether the cited paper really supports the statement.** The verifier
+  sees the summary and the list of valid PMIDs, not the abstracts. A real PMID
+  can be attached to a claim that paper does not make. A correct claim can be
+  overstated, get a number wrong or lose its caveats.
+- **Anything outside the abstract.** The model reads only each paper's title,
+  metadata and abstract, never the full text. Methods, limitations and results
+  that are not in the abstract are invisible to it, and a paper with no
+  abstract contributes almost nothing.
+- **Quality of the evidence.** Study design, sample size, retractions,
+  conflicts of interest and replication are not assessed. A single case report
+  and a randomised trial carry the same weight.
+- **Completeness.** By default you get up to 15 papers from the last two
+  years, ranked by PubMed relevance. This is not a systematic review, and
+  important work may be missing.
+
+Treat each summary as a guide to what to read, and open the cited paper before
+relying on any statement.
 
 ## What problem it solves, and for whom
 
@@ -63,6 +106,10 @@ If either layer rejects the summary, it is regenerated with the specific
 problems fed back to the model. After three failed attempts it is discarded and
 the reason is shown. The list of references is still shown, because those
 references are real and can be checked by their PMID.
+
+What this establishes is that every citation is **real and traceable**. It does
+not establish that the cited paper says what the summary claims; see
+[Before you use it](#before-you-use-it).
 
 The same thinking applies elsewhere: inside the summary, a citation is only
 turned into a link if its PMID is in the retrieved set, and the summary cache is

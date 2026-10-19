@@ -3,10 +3,12 @@
 AI tools to help people find their way through the research literature on rare
 diseases.
 
-> **Not a diagnostic tool and not medical advice.** These tools help you search
-> the literature. They do not tell you anything about a patient. See the
-> [paper-search README](paper-search/README.md) for what the automatic checks
-> do and do not cover.
+> **Not a diagnostic tool and no substitute for medical judgement.** These tools
+> help you search the literature. They tell you nothing about any particular
+> patient. The summaries are written by a language model and checked
+> automatically, but the checks are not infallible. Read
+> [what they cover and what they don't](paper-search/README.md#before-you-use-it)
+> before relying on anything they say.
 
 | Component | What it does | Status |
 |---|---|---|

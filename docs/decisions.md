@@ -814,3 +814,13 @@ licencia) que remite al README de paper-search, para no mantener dos versiones d
 opciones en castellano (`buscar`, `--dias`, `--idioma en`). No se traducen ni se les añaden
 alias ingleses. Esa decisión ya está tomada más arriba, y un README que prometiera `search`
 fallaría en el primer comando que alguien copiara.
+
+2026-10-19 — [paper-search] El aviso de no diagnóstico de los README pasa de nota a sección
+propia al principio, «Antes de usarlo», con lo que cubren los guardarraíles separado en tres
+niveles: garantizado por código, comprobado por un modelo, y sin comprobar. Motivo: en público
+cualquiera puede usar la herramienta sin leer nada, y «se verifica automáticamente» a secas se
+lee como más de lo que es. El hueco más importante que se declara es que el verificador recibe
+el resumen y la lista de PMIDs, pero NO los abstracts: comprueba que cada cita es real y que
+toda afirmación clínica tiene cita, no que el paper diga lo que el resumen afirma. Se documenta
+el hueco tal como está, sin cambiar el código. Cerrarlo (pasar los abstracts al verificador)
+encarece cada verificación y es una decisión de diseño que no corresponde a esta tarea.
