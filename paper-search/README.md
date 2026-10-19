@@ -626,3 +626,8 @@ resumen que cite un PMID ajeno a los artículos recuperados.
 - Caché persistente de búsquedas y traducción automática de abstracts quedan
   fuera de esta versión. La interfaz web local del modo doble clic es
   deliberadamente mínima: un formulario síncrono, sin histórico ni exportación.
+
+## Licencia
+
+[MIT](../LICENSE) © 2026 Alejandro Estevez Ruiz. Cubre todo el repositorio
+`rare-disease-tools`, incluida la extensión de Chrome.
