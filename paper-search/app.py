@@ -29,6 +29,7 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
     MAX_RESULTADOS_POR_DEFECTO,
     IDIOMAS,
     BaseDatosError,
+    FaltaEmailNCBIError,
     FavoritoError,
     Favoritos,
     LimiteAlcanzadoError,
@@ -366,6 +367,10 @@ def buscar():
         # bloqueó antes de tocar PubMed. Es un problema de la entrada, no de
         # las APIs, así que se trata como los errores de formulario (400).
         return render_template("index.html", error=str(exc), **contexto), 400
+    except FaltaEmailNCBIError as exc:
+        # Falta configurar el servidor (NCBI_EMAIL): no ha fallado PubMed, así
+        # que no es un 502. Se detecta antes de gastar ninguna llamada.
+        return render_template("index.html", error=str(exc), **contexto), 500
     except PaperSearchError as exc:
         # Fallo de PubMed: no hay datos reales que enseñar, así que se dice
         # claramente en vez de mostrar una página vacía.

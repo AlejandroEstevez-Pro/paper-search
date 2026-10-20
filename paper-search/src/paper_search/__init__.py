@@ -75,6 +75,8 @@ from .models import (
     url_de_pmid,
 )
 from .pubmed_client import (
+    MENSAJE_FALTA_EMAIL,
+    FaltaEmailNCBIError,
     PubMedClient,
     PubMedError,
     RateLimiter,
@@ -101,6 +103,7 @@ __all__ = [
     "Criterios",
     "CriteriosVaciosError",
     "FaltaAPIKeyError",
+    "FaltaEmailNCBIError",
     "Favorito",
     "FavoritoError",
     "Favoritos",
@@ -109,6 +112,7 @@ __all__ = [
     "IDIOMAS",
     "IDIOMA_REFERENCIA",
     "MENSAJE_FALTA_API_KEY",
+    "MENSAJE_FALTA_EMAIL",
     "ORDENES",
     "ORDEN_FECHA",
     "ORDEN_POR_DEFECTO",
@@ -212,6 +216,10 @@ def buscar_y_resumir(
     queda anotada en el registro de acciones (`registro.py`). Sin `db` (uso
     como librería pura) no hay caché, límites ni persistencia de ningún tipo.
 
+    Sin `NCBI_EMAIL` se lanza `FaltaEmailNCBIError` antes de hacer NADA: ni
+    se cuenta la búsqueda en los límites ni se gasta la llamada del filtro de
+    alcance en una búsqueda que no podría llegar a PubMed.
+
     Los fallos de PubMed se propagan como `PubMedError`: sin datos reales no
     hay resultado que devolver. En cambio, un fallo al generar el resumen (por
     ejemplo, falta `ANTHROPIC_API_KEY`) no descarta los papers ya obtenidos:
@@ -219,6 +227,10 @@ def buscar_y_resumir(
     quien llama decida cómo presentarlo. Nunca se rellena `resumen` con texto
     aproximado.
     """
+    # Lo primero: sin email de contacto no se puede consultar PubMed, y es
+    # mejor saberlo antes de que el filtro de alcance gaste una llamada de pago.
+    client = client or PubMedClient()
+
     criterios = Criterios.de(termino, autor=autor, patogeno=patogeno)
     # La consulta que se manda a PubMed (término + autor[AU] + patógeno) y el
     # sujeto que ve el guardarraíl (término + patógeno, SIN el autor) son cosas
@@ -297,7 +309,6 @@ def buscar_y_resumir(
             raise TerminoFueraDeAlcanceError(veredicto.mensaje_bloqueo(sujeto, idioma))
         aviso_alcance = veredicto.aviso(sujeto, idioma)
 
-    client = client or PubMedClient()
     try:
         papers = tuple(
             client.buscar_papers(consulta, max_resultados=max_resultados, dias=dias)

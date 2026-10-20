@@ -468,8 +468,8 @@ def test_rate_limiter_no_espera_si_ya_paso_el_intervalo():
 
 
 def test_el_limite_por_defecto_depende_de_si_hay_api_key():
-    sin_clave = PubMedClient(session=SessionFalsa([]), api_key=None)
-    con_clave = PubMedClient(session=SessionFalsa([]), api_key="abc")
+    sin_clave = PubMedClient(session=SessionFalsa([]), api_key=None, email="t@example.org")
+    con_clave = PubMedClient(session=SessionFalsa([]), api_key="abc", email="t@example.org")
 
     assert sin_clave.rate_limiter.intervalo_minimo == pytest.approx(1 / LIMITE_SIN_API_KEY)
     assert con_clave.rate_limiter.intervalo_minimo == pytest.approx(1 / LIMITE_CON_API_KEY)
@@ -491,7 +491,9 @@ def test_el_cliente_pasa_por_el_rate_limiter_en_cada_peticion():
             RespuestaFalsa(text=XML_DOS_ARTICULOS),
         ]
     )
-    client = PubMedClient(session=session, rate_limiter=limiter, dormir=lambda _: None)
+    client = PubMedClient(
+        session=session, rate_limiter=limiter, email="t@example.org", dormir=lambda _: None
+    )
 
     client.buscar_papers("SCN1A")
 

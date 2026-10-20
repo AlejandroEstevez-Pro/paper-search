@@ -29,6 +29,7 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
     ORDEN_POR_DEFECTO,
     ORDENES,
     BaseDatosError,
+    FaltaEmailNCBIError,
     FavoritoError,
     Favoritos,
     LimiteAlcanzadoError,
@@ -41,8 +42,8 @@ from paper_search import (  # noqa: E402  (tras ajustar sys.path)
 )
 from paper_search.orden import ETIQUETAS as ETIQUETAS_ORDEN  # noqa: E402
 
-# Códigos de salida: 0 correcto, 1 error de uso, 2 fallo de una API externa,
-# 3 límite diario de uso alcanzado.
+# Códigos de salida: 0 correcto, 1 error de uso o de configuración, 2 fallo de
+# una API externa, 3 límite diario de uso alcanzado.
 EXIT_OK = 0
 EXIT_USO = 1
 EXIT_FALLO_API = 2
@@ -234,6 +235,10 @@ def comando_buscar(args: argparse.Namespace, parser: argparse.ArgumentParser) ->
     except TerminoFueraDeAlcanceError as exc:
         # Término fuera del alcance (enfermedades raras): no es un fallo de
         # las APIs sino de la entrada, así que sale con el código de uso.
+        print(f"Error: {exc}", file=sys.stderr)
+        return EXIT_USO
+    except FaltaEmailNCBIError as exc:
+        # Falta configuración local, no ha fallado ninguna API: código de uso.
         print(f"Error: {exc}", file=sys.stderr)
         return EXIT_USO
     except PaperSearchError as exc:

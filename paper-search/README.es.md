@@ -76,8 +76,8 @@ pip install -r requirements.txt
 | Variable | ¿Obligatoria? | Para qué |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Sí, para el resumen | Genera el resumen en lenguaje llano y alimenta los dos guardarraíles (filtro de alcance y verificación del resumen). Sin ella la búsqueda funciona igual y se listan las referencias, pero no hay resumen (la CLI sale con código 2 explicando por qué) y el filtro de alcance deja pasar cualquier término con un aviso. |
+| `NCBI_EMAIL` | **Sí** | Tu email de contacto. NCBI, que mantiene PubMed, lo pide a todo programa que use su API para poder avisar a quien lo ejecuta si sus peticiones dan problemas antes de bloquearlas. No hay ninguno por defecto: sin él no se consulta PubMed, y la CLI (código 1) o la web explican qué falta. |
 | `NCBI_API_KEY` | No | Sube el límite de PubMed de 3 a 10 peticiones/segundo. Gratis en <https://www.ncbi.nlm.nih.gov/account/>. |
-| `NCBI_EMAIL` | No | Email de contacto que NCBI pide para avisar de un uso abusivo accidental. Si no se define se usa el del autor del repo. |
 
 Hay dos formas de ponerlas. La segunda es la cómoda para el día a día,
 sobre todo con el modo doble clic, donde no hay terminal donde exportar nada.
@@ -95,7 +95,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
 **2. Un archivo `.env`** en la raíz de `paper-search/` (junto a `cli.py`).
-Copia la plantilla versionada y rellena la clave:
+Copia la plantilla versionada y rellena la clave y tu email:
 
 ```powershell
 # PowerShell
@@ -110,6 +110,7 @@ cp .env.example .env
 ```ini
 # paper-search/.env
 ANTHROPIC_API_KEY=sk-ant-...
+NCBI_EMAIL=<tu email>
 ```
 
 Se carga solo al arrancar la CLI o el servidor web, así que basta con guardarlo
@@ -169,8 +170,8 @@ Desmarcar borra también la nota. La CLI pregunta antes si hay una escrita
 para que un `pipe` no borre nada.
 
 Códigos de salida: `0` correcto (incluida una búsqueda legítima sin
-resultados), `1` error de uso (incluido un término fuera del alcance de
-enfermedades raras), `2` fallo de una API externa o resumen no generado,
+resultados), `1` error de uso o de configuración (incluidos un término fuera
+del alcance de enfermedades raras y que falte `NCBI_EMAIL`), `2` fallo de una API externa o resumen no generado,
 `3` límite diario de uso alcanzado.
 
 ### Salida en modo texto

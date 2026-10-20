@@ -173,7 +173,7 @@ Then fill in `.env`:
 | Variable | Required? | What for |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Yes, for summaries | Writes the summary and powers both guardrails. Without it, PubMed search still works and references are listed, but there is no summary, and the scope filter lets every term through with a warning. |
-| `NCBI_EMAIL` | Recommended | NCBI asks every client to identify itself with a contact address, so that it can contact you about accidental overuse. Use your own address. |
+| `NCBI_EMAIL` | Yes | Your own contact address. NCBI, which runs PubMed, asks every program that uses its API for the real email of whoever runs it, so that it can warn them about problematic traffic before blocking it. There is no default: without it nothing is sent to PubMed, and the CLI or the web page tells you what is missing. |
 | `NCBI_API_KEY` | No | Raises the PubMed rate limit from 3 to 10 requests per second. Free at <https://www.ncbi.nlm.nih.gov/account/>. |
 
 Variables already set in the environment take precedence over `.env`. `.env` is
@@ -219,8 +219,8 @@ python cli.py buscar "SCN1A" --formato json > results.json
 | `--autor`, `--patogeno` | — | Filter by author or by pathogen |
 | `--forzar` | off | Regenerate the summary, ignoring the local cache |
 
-Exit codes: `0` success (including a legitimate empty result), `1` usage error
-or out-of-scope term, `2` external API failure or summary not produced, `3`
+Exit codes: `0` success (including a legitimate empty result), `1` usage or
+configuration error (out-of-scope term, missing `NCBI_EMAIL`), `2` external API failure or summary not produced, `3`
 daily usage limit reached.
 
 ### Chrome extension

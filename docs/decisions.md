@@ -824,3 +824,18 @@ el resumen y la lista de PMIDs, pero NO los abstracts: comprueba que cada cita e
 toda afirmación clínica tiene cita, no que el paper diga lo que el resumen afirma. Se documenta
 el hueco tal como está, sin cambiar el código. Cerrarlo (pasar los abstracts al verificador)
 encarece cada verificación y es una decisión de diseño que no corresponde a esta tarea.
+
+2026-10-20 — [paper-search] `NCBI_EMAIL` pasa a ser OBLIGATORIO y desaparece
+`EMAIL_POR_DEFECTO`. Revisa la decisión del 2026-07-28, que ya preveía este cambio si el repo
+se hacía público: con el email del autor fijo en el código, cualquiera que clonase el repo
+hablaría con NCBI en su nombre, y los avisos por abuso le llegarían a él. Sin un email válido
+(vacío o sin arroba), `PubMedClient` lanza `FaltaEmailNCBIError` con un mensaje que explica
+qué es y por qué lo pide NCBI. No se pone ningún email de ejemplo, ni en el mensaje ni en
+`.env.example`, para que nadie copie uno tal cual.
+
+2026-10-20 — [paper-search] El cliente de PubMed se construye al PRINCIPIO de
+`buscar_y_resumir`, no justo antes de buscar. Motivo: así la falta de email salta antes de que
+el filtro de alcance gaste una llamada de pago a Claude y antes de contar la búsqueda en los
+límites diarios. `FaltaEmailNCBIError` hereda de `PaperSearchError` y no de `PubMedError`,
+porque no ha fallado PubMed sino la configuración local. Por eso la CLI sale con el código de
+uso (1) y no con el de fallo de API (2), y la web responde 500 y no 502.

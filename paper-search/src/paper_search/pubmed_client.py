@@ -34,9 +34,23 @@ log = logging.getLogger(__name__)
 BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 NOMBRE_HERRAMIENTA = "rare-disease-paper-search"
 
-#: NCBI pide un email de contacto real para poder avisar de un uso abusivo
-#: accidental. Se puede sobreescribir con la variable de entorno NCBI_EMAIL.
-EMAIL_POR_DEFECTO = "alejandrostvzrzpro@gmail.com"
+#: NCBI pide a quien usa E-utilities un email de contacto real, para poder
+#: avisarle si sus peticiones dan problemas antes de bloquearlas. Es
+#: obligatorio y NO tiene valor por defecto: un email fijo en el código haría
+#: que todo el que clonase el repo hablara con NCBI en nombre del autor.
+MENSAJE_FALTA_EMAIL = (
+    "Falta NCBI_EMAIL, el email de contacto que se envía a PubMed con cada "
+    "búsqueda.\n"
+    "NCBI, que mantiene PubMed, pide a todo programa que use su API el email "
+    "real de quien lo ejecuta, para poder avisarle si sus peticiones causan "
+    "problemas antes de bloquearlas. Pon el tuyo, no el de otra persona, de "
+    "una de estas dos formas:\n"
+    "  1. En el archivo .env de la carpeta paper-search/ (copia .env.example a "
+    ".env y rellena NCBI_EMAIL).\n"
+    "  2. Como variable de entorno, que tiene prioridad sobre el .env:\n"
+    '       PowerShell:  $env:NCBI_EMAIL = "<tu email>"\n'
+    '       bash/zsh:    export NCBI_EMAIL="<tu email>"'
+)
 
 #: Límites publicados por NCBI (ver docs/api-notes.md).
 LIMITE_SIN_API_KEY = 3.0
@@ -56,6 +70,14 @@ class PubMedError(PaperSearchError):
 
 class RespuestaInvalidaError(PubMedError):
     """La API respondió, pero el cuerpo no se pudo interpretar."""
+
+
+class FaltaEmailNCBIError(PaperSearchError):
+    """Falta `NCBI_EMAIL`, o no parece un email: sin él no se consulta PubMed.
+
+    No hereda de `PubMedError` porque no es un fallo de PubMed sino de la
+    configuración local, y se detecta antes de hacer ninguna petición.
+    """
 
 
 class RateLimiter:
@@ -111,7 +133,9 @@ class PubMedClient:
         dormir: Callable[[float], None] = time.sleep,
     ) -> None:
         self.api_key = api_key if api_key is not None else os.environ.get("NCBI_API_KEY")
-        self.email = email or os.environ.get("NCBI_EMAIL") or EMAIL_POR_DEFECTO
+        self.email = (email or os.environ.get("NCBI_EMAIL") or "").strip()
+        if "@" not in self.email:
+            raise FaltaEmailNCBIError(MENSAJE_FALTA_EMAIL)
         self.herramienta = herramienta
         self.session = session if session is not None else requests.Session()
         self.max_reintentos = max_reintentos
