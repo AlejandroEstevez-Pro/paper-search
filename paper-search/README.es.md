@@ -181,8 +181,8 @@ revista, año, PMID y enlace a PubMed.
 
 ## Qué esperar de una búsqueda
 
-**Búsqueda válida** (p. ej. `SCN1A`, `síndrome de Dravet`): resumen en español
-en lenguaje llano donde cada afirmación termina con su cita `[PMID: ...]`,
+**Búsqueda válida** (p. ej. `SCN1A`, `síndrome de Dravet`): resumen en lenguaje
+llano, en el idioma elegido, donde cada afirmación termina con su cita `[PMID: ...]`,
 seguido de las referencias con enlace a PubMed. El resumen solo se muestra si
 ha superado la verificación automática: todos los PMIDs citados pertenecen a
 los artículos realmente recuperados y no contiene consejo médico dirigido al
@@ -508,8 +508,9 @@ en `pubmed_client.py`.
 **Registro de acciones.** Cada búsqueda queda anotada: término, parámetros,
 resultado (éxito, sin resultados, bloqueo por alcance o por límite, error de
 PubMed o de resumen), si vino de caché, cuántas llamadas a Claude consumió y
-qué PMIDs devolvió. Sirve para auditoría/depuración y es la base del historial
-y los favoritos de la Fase 3; todavía no se muestra en la interfaz.
+qué PMIDs devolvió. Sirve para auditoría y depuración, y de ahí salen los datos
+de los papers que se pueden marcar como favoritos. El registro en sí todavía no
+se muestra en la interfaz.
 
 ## Modo doble clic (interfaz web local)
 
@@ -524,18 +525,20 @@ También se puede arrancar a mano:
 python app.py
 ```
 
-El formulario pide los mismos tres parámetros que la CLI (término, máx. papers,
-ventana en días) y devuelve exactamente el mismo resultado: por debajo llama a
-la misma función `buscar_y_resumir` del paquete.
+El formulario tiene las mismas opciones que la CLI (término, máx. papers,
+ventana en días, orden, «Regenerar el resumen» y, en «Búsqueda avanzada», autor
+y patógeno; el idioma se elige en la cabecera) y devuelve exactamente el mismo
+resultado: por debajo llama a la misma función `buscar_y_resumir` del paquete.
 
-El servidor escucha solo en `127.0.0.1`, nunca en `0.0.0.0`: es una herramienta
-local para una persona, no un servicio de red. La clave de API vive únicamente
+Por defecto el servidor escucha solo en `127.0.0.1`: es una herramienta local
+para una persona, no un servicio de red. Solo se abre a la red local si se pide
+a propósito con `--red` (ver «Usarlo desde el móvil»). La clave de API vive únicamente
 en el proceso Python y nunca llega al navegador — por eso hay un backend y no
 un HTML suelto.
 
-Dentro del resumen, cada cita `[PMID: ...]` va resaltada, y debajo está la lista
-de referencias con enlace a PubMed: se ve de un vistazo qué afirmación se apoya
-en qué paper.
+Dentro del resumen, cada cita `[PMID: ...]` es un enlace al artículo en PubMed
+(solo si ese PMID está entre los recuperados), y debajo está la lista de
+referencias: se ve de un vistazo qué afirmación se apoya en qué paper.
 
 ### Estilos
 
@@ -565,7 +568,8 @@ Pensado para que lo consuman otras herramientas del repo (ver
       "revista": "iScience",
       "fecha": "2026-08-21",
       "abstract": "...",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/42495533/"
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42495533/",
+      "orden_relevancia": 1
     }
   ],
   "total": 1,
@@ -588,7 +592,8 @@ motivo. `aviso_alcance` se rellena si el término era ambiguo o el filtro de
 alcance no se pudo ejecutar; `aviso_idioma`, si el término parecía escrito en
 español, catalán, euskera o gallego. `desde_cache` y `cache_creado_en` indican
 si el resumen se sirvió desde la caché local y cuándo se generó originalmente.
-`orden` es el criterio con el que viene ordenado `papers`, y `criterios` lo que se
+`orden` es el criterio con el que viene ordenado `papers` (cada paper lleva en
+`orden_relevancia` la posición que le dio PubMed), y `criterios` lo que se
 escribió campo a campo (`query` es la consulta ya montada que se mandó a PubMed).
 
 ## Tests
@@ -613,9 +618,14 @@ paper-search/
 ├── cli.py                        # solo argparse + printing, sin lógica
 ├── app.py                        # servidor Flask local (modo doble clic)
 ├── run.bat                       # doble clic: instala, arranca y abre el navegador
-├── templates/index.html          # formulario + resultados de la interfaz web
+├── run-red.bat                   # igual, pero abierto a la wifi (pregunta antes)
+├── templates/                    # búsqueda, favoritos, página sin conexión, service worker
 ├── static/classical.css          # sistema de diseño, copiado de Claude Design
 ├── static/paper-search.css       # estilos propios de la página
+├── static/conexion.js            # registro del service worker y avisos de conexión
+├── static/iconos/                # icono SVG fuente y PNG derivados
+├── i18n/                         # textos de interfaz en es/en (fuente única)
+├── herramientas/                 # generadores de _locales/ e iconos
 ├── .env.example                  # plantilla de claves (el .env real no se sube)
 ├── conftest.py                   # hace importable src/ en los tests
 ├── datos/                        # BD SQLite local (no se versiona)
@@ -632,12 +642,14 @@ paper-search/
 │   ├── i18n.py                   # traducción: cargador, traducir(), fallback
 │   ├── locales.py                # generador del formato chrome.i18n
 │   ├── pwa.py                    # política de caché de la PWA
+│   ├── red.py                    # modo red local (--red), apagado por defecto
+│   ├── prompts.py                # prompts del resumidor y del verificador, por idioma
 │   ├── summarizer.py             # resumen en lenguaje llano
 │   ├── verificacion.py           # verificación del resumen + reintentos
 │   ├── db.py                     # SQLite local: conexión, esquema, migraciones
 │   ├── cache.py                  # caché de resúmenes y veredictos de alcance
 │   ├── limites.py                # límites diarios de uso propios
-│   ├── registro.py               # registro de acciones (auditoría, Fase 3)
+│   ├── registro.py               # registro de acciones (auditoría)
 │   └── models.py                 # Paper, ResultadoBusqueda
 └── tests/
 ```
@@ -660,19 +672,20 @@ resumen que cite un PMID ajeno a los artículos recuperados.
   equivocarse en casos límite: si bloquea un término que crees legítimo, prueba
   con el nombre del gen o el nombre oficial del síndrome.
 - **La fuente está en inglés.** PubMed indexa casi todo en inglés y los
-  abstracts que alimentan el resumen están en inglés; el resumen sí se escribe
-  en español. Buscar en español funciona a veces para nombres de síndrome muy
-  establecidos ("síndrome de Dravet"), pero es menos fiable que buscar por el
-  gen (`SCN1A`) o por el nombre en inglés. La herramienta todavía **no** avisa
-  automáticamente cuando el término está en español ni lo traduce — está
-  anotado como pendiente en `../docs/decisions.md`.
+  abstracts que alimentan el resumen están en inglés; el resumen se escribe en
+  el idioma elegido. Buscar en español funciona a veces para nombres de
+  síndrome muy establecidos ("síndrome de Dravet"), pero es menos fiable que
+  buscar por el gen (`SCN1A`) o por el nombre en inglés. Si el término parece
+  escrito en español, catalán, euskera o gallego, la herramienta **avisa** (ver
+  «Qué esperar de una búsqueda»), pero no lo traduce: se busca tal cual.
 - **La verificación no es infalible.** La capa determinista garantiza que
   ningún PMID citado sea inventado, pero juzgar si una afirmación necesita cita
   o constituye consejo médico lo hace un modelo. Por eso el aviso permanente:
   verifica cada afirmación en el paper original.
-- Caché persistente de búsquedas y traducción automática de abstracts quedan
-  fuera de esta versión. La interfaz web local del modo doble clic es
-  deliberadamente mínima: un formulario síncrono, sin histórico ni exportación.
+- **Fuera de esta versión:** traducir los abstracts, enseñar en la interfaz
+  un historial de búsquedas (se anotan en el registro local, pero no se
+  muestran) y cachear los resultados de PubMed. Solo se cachean los resúmenes y
+  los veredictos de alcance, así que cada búsqueda vuelve a consultar PubMed.
 
 ## Licencia
 

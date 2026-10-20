@@ -839,3 +839,12 @@ el filtro de alcance gaste una llamada de pago a Claude y antes de contar la bú
 límites diarios. `FaltaEmailNCBIError` hereda de `PaperSearchError` y no de `PubMedError`,
 porque no ha fallado PubMed sino la configuración local. Por eso la CLI sale con el código de
 uso (1) y no con el de fallo de API (2), y la web responde 500 y no 502.
+
+2026-10-20 — [paper-search] Repaso de afirmaciones desfasadas en los dos README antes de
+publicar. En el castellano se habían quedado atrás «Limitaciones actuales» (decía que no se
+avisaba de un término en español y que no había exportación), el resumen «en español», el
+formulario «de tres parámetros», las citas «resaltadas» (ya son enlaces), el servidor «nunca en
+0.0.0.0» (falso desde el modo red), el formato JSON (sin `orden_relevancia`) y el árbol de
+arquitectura. En el inglés, lo mismo sobre `127.0.0.1`. Además ahora dice que la web arranca en
+castellano y abre con lo que hace falta antes de empezar: clave de Anthropic PROPIA, con el aviso
+de que cada búsqueda con resumen hace varias llamadas de pago, y un `NCBI_EMAIL` propio.

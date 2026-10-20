@@ -159,7 +159,22 @@ The log is written in Spanish, the working language of the project.
 
 ## Installation
 
-Requires Python 3.10 or later.
+### What you need before you start
+
+- **Python 3.10 or later.**
+- **Your own Anthropic API key**, from
+  [console.anthropic.com](https://console.anthropic.com/). Usage is billed to
+  your account, and **every search with a summary makes several paid calls**:
+  normally three (scope check, summary, verification), and up to seven when the
+  verifier sends the summary back to be rewritten. Repeating a recent search is
+  free because it is served from the local cache, and daily caps stop you from
+  running up a bill by accident (see [Cost and limits](#cost-and-limits)).
+- **Your own email address**, for `NCBI_EMAIL`. PubMed's API requires a
+  contact address and it is sent with every request, so searches will not run
+  without it.
+- Optionally, a free NCBI API key for a higher PubMed rate limit.
+
+### Steps
 
 ```bash
 git clone <this repository>
@@ -189,11 +204,15 @@ python app.py
 
 Then open <http://127.0.0.1:5000>. On Windows you can double-click `run.bat`
 instead: it installs the dependencies on first run, starts the server and opens
-the browser. Switch to English with the selector in the header. The summary is
-then written, verified and exported in English as well.
+the browser. The interface starts in Spanish: switch to English with the
+selector in the header, and the choice is remembered. The summary is then
+written, verified and exported in English as well.
 
-The server listens only on `127.0.0.1`, and the API key never leaves the Python
-process. The web interface also has favourites with personal notes, local
+By default the server listens only on `127.0.0.1`, and the API key never leaves
+the Python process. `python app.py --red` opens it to your local network so you
+can use it from a phone, **with no password of any kind**: anyone on that
+Wi-Fi can read your favourites and spend your API credit. The Spanish README
+explains what this does and does not allow. The web interface also has favourites with personal notes, local
 sorting and filtering, a "Copy for NotebookLM" export, and can be installed as
 a PWA.
 
@@ -220,8 +239,8 @@ python cli.py buscar "SCN1A" --formato json > results.json
 | `--forzar` | off | Regenerate the summary, ignoring the local cache |
 
 Exit codes: `0` success (including a legitimate empty result), `1` usage or
-configuration error (out-of-scope term, missing `NCBI_EMAIL`), `2` external API failure or summary not produced, `3`
-daily usage limit reached.
+configuration error (out-of-scope term, missing `NCBI_EMAIL`), `2` external
+API failure or summary not produced, `3` daily usage limit reached.
 
 ### Chrome extension
 
